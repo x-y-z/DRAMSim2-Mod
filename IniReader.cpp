@@ -2,20 +2,20 @@
 *  Copyright (c) 2010-2011, Elliott Cooper-Balis
 *                             Paul Rosenfeld
 *                             Bruce Jacob
-*                             University of Maryland 
+*                             University of Maryland
 *                             dramninjas [at] gmail [dot] com
 *  All rights reserved.
-*  
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions are met:
-*  
+*
 *     * Redistributions of source code must retain the above copyright notice,
 *        this list of conditions and the following disclaimer.
-*  
+*
 *     * Redistributions in binary form must reproduce the above copyright notice,
 *        this list of conditions and the following disclaimer in the documentation
 *        and/or other materials provided with the distribution.
-*  
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 *  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 *  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -30,6 +30,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 #include "PrintMacros.h"
 #include "IniReader.h"
 
@@ -40,7 +41,7 @@ namespace DRAMSim
 
 OptionsMap IniReader::ReadIniFile(string filename)
 {
-	OptionsMap options; 
+	OptionsMap options;
 	ifstream iniFile;
 	string line;
 	string key,valueString;
@@ -100,7 +101,9 @@ OptionsMap IniReader::ReadIniFile(string filename)
 			key = line.substr(0, equalsIndex);
 			// all characters after the equals are the value
 			valueString = line.substr(equalsIndex+1,strlen-equalsIndex);
-			options[key] = valueString; 
+            std::transform(valueString.begin(), valueString.end(),
+                           valueString.begin(), ::tolower);
+			options[key] = valueString;
 
 		}
 	}
@@ -109,7 +112,7 @@ OptionsMap IniReader::ReadIniFile(string filename)
 		ERROR ("Unable to load ini file "<<filename);
 		abort();
 	}
-	return options; 
+	return options;
 }
 
 } // namespace DRAMSim

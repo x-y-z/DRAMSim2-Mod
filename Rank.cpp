@@ -2,20 +2,20 @@
 *  Copyright (c) 2010-2011, Elliott Cooper-Balis
 *                             Paul Rosenfeld
 *                             Bruce Jacob
-*                             University of Maryland 
+*                             University of Maryland
 *                             dramninjas [at] gmail [dot] com
 *  All rights reserved.
-*  
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions are met:
-*  
+*
 *     * Redistributions of source code must retain the above copyright notice,
 *        this list of conditions and the following disclaimer.
-*  
+*
 *     * Redistributions in binary form must reproduce the above copyright notice,
 *        this list of conditions and the following disclaimer in the documentation
 *        and/or other materials provided with the distribution.
-*  
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 *  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 *  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -63,8 +63,8 @@ Rank::~Rank()
 	{
 		delete readReturnPacket[i];
 	}
-	readReturnPacket.clear(); 
-	delete outgoingDataPacket; 
+	readReturnPacket.clear();
+	delete outgoingDataPacket;
 }
 void Rank::receiveFromBus(BusPacket *packet)
 {
@@ -95,7 +95,7 @@ void Rank::receiveFromBus(BusPacket *packet)
 		bankStates[packet->bank].nextPrecharge = max(bankStates[packet->bank].nextPrecharge, currentClockCycle + cfg.READ_TO_PRE_DELAY);
 		for (size_t i=0;i<cfg.NUM_BANKS;i++)
 		{
-			bankStates[i].nextRead = max(bankStates[i].nextRead, currentClockCycle + max((unsigned)cfg.tCCD, (unsigned)cfg.BL/2));
+			bankStates[i].nextRead = max(bankStates[i].nextRead, currentClockCycle + max((unsigned)cfg.tCCD, (unsigned)packet->BurstLength/*cfg.BL*/ /2));
 			bankStates[i].nextWrite = max(bankStates[i].nextWrite, currentClockCycle + cfg.READ_TO_WRITE_DELAY);
 		}
 
@@ -124,7 +124,7 @@ void Rank::receiveFromBus(BusPacket *packet)
 		for (size_t i=0;i<cfg.NUM_BANKS;i++)
 		{
 			//will set next read/write for all banks - including current (which shouldnt matter since its now idle)
-			bankStates[i].nextRead = max(bankStates[i].nextRead, currentClockCycle + max(cfg.BL/2, (unsigned)cfg.tCCD));
+			bankStates[i].nextRead = max(bankStates[i].nextRead, currentClockCycle + max(/*cfg.BL*/packet->BurstLength/2, (unsigned)cfg.tCCD));
 			bankStates[i].nextWrite = max(bankStates[i].nextWrite, currentClockCycle + cfg.READ_TO_WRITE_DELAY);
 		}
 
@@ -154,7 +154,7 @@ void Rank::receiveFromBus(BusPacket *packet)
 		for (size_t i=0;i<cfg.NUM_BANKS;i++)
 		{
 			bankStates[i].nextRead = max(bankStates[i].nextRead, currentClockCycle + cfg.WRITE_TO_READ_DELAY_B);
-			bankStates[i].nextWrite = max(bankStates[i].nextWrite, currentClockCycle + max(cfg.BL/2, (unsigned)cfg.tCCD));
+			bankStates[i].nextWrite = max(bankStates[i].nextWrite, currentClockCycle + max(/*cfg.BL*/packet->BurstLength/2, (unsigned)cfg.tCCD));
 		}
 
 		//take note of where data is going when it arrives
@@ -178,7 +178,7 @@ void Rank::receiveFromBus(BusPacket *packet)
 		bankStates[packet->bank].nextActivate = max(bankStates[packet->bank].nextActivate, currentClockCycle + cfg.WRITE_AUTOPRE_DELAY);
 		for (size_t i=0;i<cfg.NUM_BANKS;i++)
 		{
-			bankStates[i].nextWrite = max(bankStates[i].nextWrite, currentClockCycle + max((unsigned)cfg.tCCD, (unsigned)cfg.BL/2));
+			bankStates[i].nextWrite = max(bankStates[i].nextWrite, currentClockCycle + max((unsigned)cfg.tCCD, (unsigned)packet->BurstLength/*cfg.BL*//2));
 			bankStates[i].nextRead = max(bankStates[i].nextRead, currentClockCycle + cfg.WRITE_TO_READ_DELAY_B);
 		}
 
@@ -223,7 +223,7 @@ void Rank::receiveFromBus(BusPacket *packet)
 				bankStates[i].nextActivate = max(bankStates[i].nextActivate, currentClockCycle + cfg.tRRD);
 			}
 		}
-		delete(packet); 
+		delete(packet);
 		break;
 	case PRECHARGE:
 		//make sure precharge is allowed
@@ -236,7 +236,7 @@ void Rank::receiveFromBus(BusPacket *packet)
 
 		bankStates[packet->bank].currentBankState = Idle;
 		bankStates[packet->bank].nextActivate = max(bankStates[packet->bank].nextActivate, currentClockCycle + cfg.tRP);
-		delete(packet); 
+		delete(packet);
 		break;
 	case REFRESH:
 		refreshWaiting = false;
@@ -249,7 +249,7 @@ void Rank::receiveFromBus(BusPacket *packet)
 			}
 			bankStates[i].nextActivate = currentClockCycle + cfg.tRFC;
 		}
-		delete(packet); 
+		delete(packet);
 		break;
 	case DATA:
 		// TODO: replace this check with something that works?
@@ -312,7 +312,7 @@ void Rank::update()
 		// ready to go out on the bus
 
 		outgoingDataPacket = readReturnPacket[0];
-		dataCyclesLeft = cfg.BL/2;
+		dataCyclesLeft = /*cfg.BL*/outgoingDataPacket->BurstLength/2;
 
 		// remove the packet from the ranks
 		readReturnPacket.erase(readReturnPacket.begin());

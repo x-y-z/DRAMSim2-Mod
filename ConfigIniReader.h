@@ -2,20 +2,20 @@
 *  Copyright (c) 2010-2013, Paul Rosenfeld
 *                            Elliott Cooper-Balis
 *                            Bruce Jacob
-*                            University of Maryland 
+*                            University of Maryland
 *                            dramninjas [at] gmail [dot] com
 *  All rights reserved.
-*  
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions are met:
-*  
+*
 *     * Redistributions of source code must retain the above copyright notice,
 *        this list of conditions and the following disclaimer.
-*  
+*
 *     * Redistributions in binary form must reproduce the above copyright notice,
 *        this list of conditions and the following disclaimer in the documentation
 *        and/or other materials provided with the distribution.
-*  
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 *  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 *  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -37,11 +37,11 @@
 #include <iostream>
 #include <string>
 //#include <CSVWriter.h>
-#include <sstream> 
+#include <sstream>
 #include "DRAMSim.h"
 
 
-using namespace std; 
+using namespace std;
 
 namespace DRAMSim {
 
@@ -121,23 +121,23 @@ enum AddressMappingScheme
 
 template <>
 inline void ConfigOption<AddressMappingScheme>::set(const std::string &value_str) {
-	if (value_str == "Scheme1")
-		value=Scheme1; 
-	else if (value_str == "Scheme2")
-		value=Scheme2; 
-	else if (value_str == "Scheme3")
-		value=Scheme3; 
-	else if (value_str == "Scheme4")
-		value=Scheme4; 
-	else if (value_str == "Scheme5")
-		value=Scheme5; 
-	else if (value_str == "Scheme6")
-		value=Scheme6; 
-	else if (value_str == "Scheme7")
-		value=Scheme7; 
+	if (value_str == "scheme1")
+		value=Scheme1;
+	else if (value_str == "scheme2")
+		value=Scheme2;
+	else if (value_str == "scheme3")
+		value=Scheme3;
+	else if (value_str == "scheme4")
+		value=Scheme4;
+	else if (value_str == "scheme5")
+		value=Scheme5;
+	else if (value_str == "scheme6")
+		value=Scheme6;
+	else if (value_str == "scheme7")
+		value=Scheme7;
 }
 
-// Template specialization for enums setters from strings 
+// Template specialization for enums setters from strings
 
 // Only used in CommandQueue
 enum QueuingStructure
@@ -149,9 +149,9 @@ enum QueuingStructure
 template <>
 inline void ConfigOption<QueuingStructure>::set(const std::string &value_str) {
 	if (value_str == "per_rank")
-		value=PerRank; 
+		value=PerRank;
 	else if (value_str == "per_rank_per_bank")
-		value=PerRankPerBank; 
+		value=PerRankPerBank;
 }
 
 enum RowBufferPolicy
@@ -163,9 +163,31 @@ enum RowBufferPolicy
 template <>
 inline void ConfigOption<RowBufferPolicy>::set(const std::string &value_str) {
 	if (value_str == "close_page")
-		value=ClosePage; 
+		value=ClosePage;
 	else if (value_str == "open_page")
-		value=OpenPage; 
+		value=OpenPage;
+}
+
+enum DRAMCacheType
+{
+    JustMem,
+    LHCache,
+    AlloyCache,
+    WFCache
+};
+
+template <>
+inline void ConfigOption<DRAMCacheType>::set(const std::string &value_str) {
+	if (value_str == "just_mem")
+		value=JustMem;
+    else if (value_str == "lh_cache")
+		value=LHCache;
+	else if (value_str == "alloy_cache")
+		value=AlloyCache;
+    else if (value_str == "wf_cache")
+        value=WFCache;
+    else
+        value=JustMem;
 }
 
 enum SchedulingPolicy

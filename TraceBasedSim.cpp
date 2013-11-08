@@ -2,20 +2,20 @@
 *  Copyright (c) 2010-2011, Elliott Cooper-Balis
 *                             Paul Rosenfeld
 *                             Bruce Jacob
-*                             University of Maryland 
+*                             University of Maryland
 *                             dramninjas [at] gmail [dot] com
 *  All rights reserved.
-*  
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions are met:
-*  
+*
 *     * Redistributions of source code must retain the above copyright notice,
 *        this list of conditions and the following disclaimer.
-*  
+*
 *     * Redistributions in binary form must reproduce the above copyright notice,
 *        this list of conditions and the following disclaimer in the documentation
 *        and/or other materials provided with the distribution.
-*  
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 *  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 *  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -62,7 +62,7 @@ enum TraceType
 using namespace DRAMSim;
 using namespace std;
 
-//#define RETURN_TRANSACTIONS 1
+#define RETURN_TRANSACTIONS 1
 
 #ifndef _SIM_
 int SHOW_SIM_OUTPUT = 1;
@@ -344,10 +344,10 @@ void *parseTraceFileLine(const string &line, uint64_t &addr, enum TransactionTyp
 
 #ifndef _SIM_
 
-/** 
+/**
  * Override options can be specified on the command line as -o key1=value1,key2=value2
- * this method should parse the key-value pairs and put them into a map 
- **/ 
+ * this method should parse the key-value pairs and put them into a map
+ **/
 OptionsMap parseParamOverrides(const string &kv_str)
 {
 	OptionsMap kv_map;
@@ -355,7 +355,7 @@ OptionsMap parseParamOverrides(const string &kv_str)
 	// split the commas if they are there
 	while (1)
 	{
-		equal_sign = kv_str.find('=', start); 
+		equal_sign = kv_str.find('=', start);
 		if (equal_sign == string::npos)
 		{
 			break;
@@ -368,13 +368,13 @@ OptionsMap parseParamOverrides(const string &kv_str)
 		}
 
 		string key = kv_str.substr(start, equal_sign-start);
-		string value = kv_str.substr(equal_sign+1, comma-equal_sign-1); 
+		string value = kv_str.substr(equal_sign+1, comma-equal_sign-1);
 
-		kv_map[key] = value; 
+		kv_map[key] = value;
 		start = comma+1;
 
 	}
-	return kv_map; 
+	return kv_map;
 }
 bool parseLineAndTryAdd(const string &line, TraceType traceType, DRAMSimInterface *memorySystem, uint64_t currentClockCycle, bool useClockCycle) {
 	DRAMSimTransaction *trans=NULL;
@@ -409,8 +409,8 @@ int main(int argc, char **argv)
 	string pwdString;
 	unsigned megsOfMemory=2048;
 	bool useClockCycle=true;
-	
-	OptionsMap paramOverrides; 
+
+	OptionsMap paramOverrides;
 
 	unsigned numCycles=1000;
 	//getopt stuff
@@ -481,7 +481,7 @@ int main(int argc, char **argv)
 			useClockCycle=false;
 			break;
 		case 'o':
-			paramOverrides = parseParamOverrides(string(optarg)); 
+			paramOverrides = parseParamOverrides(string(optarg));
 			break;
 		case '?':
 			usage();

@@ -2,20 +2,20 @@
 *  Copyright (c) 2010-2011, Elliott Cooper-Balis
 *                             Paul Rosenfeld
 *                             Bruce Jacob
-*                             University of Maryland 
+*                             University of Maryland
 *                             dramninjas [at] gmail [dot] com
 *  All rights reserved.
-*  
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions are met:
-*  
+*
 *     * Redistributions of source code must retain the above copyright notice,
 *        this list of conditions and the following disclaimer.
-*  
+*
 *     * Redistributions in binary form must reproduce the above copyright notice,
 *        this list of conditions and the following disclaimer in the documentation
 *        and/or other materials provided with the distribution.
-*  
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 *  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 *  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -232,7 +232,7 @@ void MemoryController::update()
 			}
 
 			outgoingDataPacket = writeDataToSend[0];
-			dataCyclesLeft = cfg.BL/2;
+			dataCyclesLeft = /*cfg.BL*/outgoingDataPacket->BurstLength/2;
 
 			totalTransactions++;
 			totalWritesPerBank[SEQUENTIAL(writeDataToSend[0]->rank,writeDataToSend[0]->bank)]++;
@@ -290,8 +290,8 @@ void MemoryController::update()
 				{
 					PRINT(" ++ Adding Read energy to total energy");
 				}
-				burstEnergy[rank] += (cfg.IDD4R - cfg.IDD3N) * cfg.BL/2 * cfg.NUM_DEVICES;
-				if (poppedBusPacket->busPacketType == READ_P) 
+				burstEnergy[rank] += (cfg.IDD4R - cfg.IDD3N) * poppedBusPacket->BurstLength/*cfg.BL*//2 * cfg.NUM_DEVICES;
+				if (poppedBusPacket->busPacketType == READ_P)
 				{
 					//Don't bother setting next read or write times because the bank is no longer active
 					//bankStates[rank][bank].currentBankState = Idle;
@@ -317,14 +317,14 @@ void MemoryController::update()
 							//check to make sure it is active before trying to set (save's time?)
 							if (bankStates[i][j].currentBankState == RowActive)
 							{
-								bankStates[i][j].nextRead = max(currentClockCycle + cfg.BL/2 + cfg.tRTRS, bankStates[i][j].nextRead);
+								bankStates[i][j].nextRead = max(currentClockCycle + poppedBusPacket->BurstLength/*cfg.BL*//2 + cfg.tRTRS, bankStates[i][j].nextRead);
 								bankStates[i][j].nextWrite = max(currentClockCycle + cfg.READ_TO_WRITE_DELAY,
 										bankStates[i][j].nextWrite);
 							}
 						}
 						else
 						{
-							bankStates[i][j].nextRead = max(currentClockCycle + max((unsigned)cfg.tCCD, cfg.BL/2), bankStates[i][j].nextRead);
+							bankStates[i][j].nextRead = max(currentClockCycle + max((unsigned)cfg.tCCD, poppedBusPacket->BurstLength/*cfg.BL*//2), bankStates[i][j].nextRead);
 							bankStates[i][j].nextWrite = max(currentClockCycle + cfg.READ_TO_WRITE_DELAY,
 									bankStates[i][j].nextWrite);
 						}
@@ -343,7 +343,7 @@ void MemoryController::update()
 				break;
 			case WRITE_P:
 			case WRITE:
-				if (poppedBusPacket->busPacketType == WRITE_P) 
+				if (poppedBusPacket->busPacketType == WRITE_P)
 				{
 					bankStates[rank][bank].nextActivate = max(currentClockCycle + cfg.WRITE_AUTOPRE_DELAY,
 							bankStates[rank][bank].nextActivate);
@@ -363,7 +363,7 @@ void MemoryController::update()
 				{
 					PRINT(" ++ Adding Write energy to total energy");
 				}
-				burstEnergy[rank] += (cfg.IDD4W - cfg.IDD3N) * cfg.BL/2 * cfg.NUM_DEVICES;
+				burstEnergy[rank] += (cfg.IDD4W - cfg.IDD3N) * poppedBusPacket->BurstLength/*cfg.BL*//2 * cfg.NUM_DEVICES;
 
 				for (size_t i=0;i<cfg.NUM_RANKS;i++)
 				{
@@ -373,14 +373,14 @@ void MemoryController::update()
 						{
 							if (bankStates[i][j].currentBankState == RowActive)
 							{
-								bankStates[i][j].nextWrite = max(currentClockCycle + cfg.BL/2 + cfg.tRTRS, bankStates[i][j].nextWrite);
+								bankStates[i][j].nextWrite = max(currentClockCycle + poppedBusPacket->BurstLength/*cfg.BL*//2 + cfg.tRTRS, bankStates[i][j].nextWrite);
 								bankStates[i][j].nextRead = max(currentClockCycle + cfg.WRITE_TO_READ_DELAY_R,
 										bankStates[i][j].nextRead);
 							}
 						}
 						else
 						{
-							bankStates[i][j].nextWrite = max(currentClockCycle + max(cfg.BL/2, (unsigned)cfg.tCCD), bankStates[i][j].nextWrite);
+							bankStates[i][j].nextWrite = max(currentClockCycle + max(poppedBusPacket->BurstLength/*cfg.BL*//2, (unsigned)cfg.tCCD), bankStates[i][j].nextWrite);
 							bankStates[i][j].nextRead = max(currentClockCycle + cfg.WRITE_TO_READ_DELAY_B,
 									bankStates[i][j].nextRead);
 						}
@@ -490,10 +490,10 @@ void MemoryController::update()
 		//and add them to the command queue
 		if (commandQueue.hasRoomFor(2, newTransactionRank, newTransactionBank))
 		{
-			if (cfg.DEBUG_ADDR_MAP) 
+			if (cfg.DEBUG_ADDR_MAP)
 			{
 				PRINTN("== New Transaction - Mapping Address [0x" << hex << transaction->address << dec << "]");
-				if (transaction->transactionType == DATA_READ) 
+				if (transaction->transactionType == DATA_READ)
 				{
 					PRINT(" (Read)");
 				}
@@ -517,6 +517,8 @@ void MemoryController::update()
 					newTransactionColumn, newTransactionRow, newTransactionRank,
 					newTransactionBank, 0, dramsim_log);
 
+            //TODO: for LH cache add request for col=0, 174 bytes+64bytes
+            //      for Alloy cache request 8bytes+64bytes
 			//create read or write command and enqueue it
 			BusPacketType bpType = transaction->getBusPacketType(cfg);
 			BusPacket *command = new BusPacket(bpType, transaction->address,
@@ -537,7 +539,7 @@ void MemoryController::update()
 			else
 			{
 				// just delete the transaction now that it's a buspacket
-				delete transaction; 
+				delete transaction;
 			}
 			/* only allow one transaction to be scheduled per cycle -- this should
 			 * be a reasonable assumption considering how much logic would be
@@ -669,14 +671,14 @@ void MemoryController::update()
 
 				delete pendingReadTransactions[i];
 				pendingReadTransactions.erase(pendingReadTransactions.begin()+i);
-				foundMatch=true; 
+				foundMatch=true;
 				break;
 			}
 		}
 		if (!foundMatch)
 		{
 			ERROR("Can't find a matching transaction for 0x"<<hex<<returnTransaction[0]->address<<dec);
-			abort(); 
+			abort();
 		}
 		delete returnTransaction[0];
 		returnTransaction.erase(returnTransaction.begin());
@@ -756,7 +758,7 @@ bool MemoryController::addTransaction(Transaction *trans)
 		transactionQueue.push_back(trans);
 		return true;
 	}
-	else 
+	else
 	{
 		return false;
 	}
@@ -831,7 +833,7 @@ void MemoryController::printStats(CSVWriter *CSVOut, bool finalStats)
 	PRINTN( "   Total Return Transactions : " << totalTransactions );
 	PRINT( " ("<<totalBytesTransferred <<" bytes) aggregate average bandwidth "<<totalBandwidth<<"GB/s");
 
-	double totalAggregateBandwidth = 0.0;	
+	double totalAggregateBandwidth = 0.0;
 	for (size_t r=0;r<cfg.NUM_RANKS;r++)
 	{
 		PRINT( "      -Rank   "<<r<<" : ");
@@ -924,7 +926,7 @@ void MemoryController::printStats(CSVWriter *CSVOut, bool finalStats)
 			PRINT( " --- Grand Total Bank usage list");
 			for (size_t i=0;i<cfg.NUM_RANKS;i++)
 			{
-				PRINT("Rank "<<i<<":"); 
+				PRINT("Rank "<<i<<":");
 				for (size_t j=0;j<cfg.NUM_BANKS;j++)
 				{
 					PRINT( "  b"<<j<<": "<<grandTotalBankAccesses[SEQUENTIAL(i,j)]);

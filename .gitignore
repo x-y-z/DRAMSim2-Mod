@@ -4,5 +4,7 @@ results/
 *.dep
 *.deppo
 *.swp
+*.d
+*.lo
 DRAMSim
 libdramsim.so
