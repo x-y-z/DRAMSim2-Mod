@@ -71,13 +71,13 @@ ofstream visDataOut; //mostly used in MemoryController
 #ifdef RETURN_TRANSACTIONS
 class TransactionReceiver
 {
-	private: 
-		map<uint64_t, deque<uint64_t> > pendingReadRequests; 
-		map<uint64_t, deque<uint64_t> > pendingWriteRequests; 
-		unsigned numReads, numWrites; 
-	
-	public: 
-		TransactionReceiver() : numReads(0), numWrites(0) 
+	private:
+		map<uint64_t, deque<uint64_t> > pendingReadRequests;
+		map<uint64_t, deque<uint64_t> > pendingWriteRequests;
+		unsigned numReads, numWrites;
+
+	public:
+		TransactionReceiver() : numReads(0), numWrites(0)
 		{
 
 
@@ -89,70 +89,70 @@ class TransactionReceiver
 			// remove at the front to ensure ordering
 			if (isWrite)
 			{
-				pendingWriteRequests[address].push_back(cycle); 
+				pendingWriteRequests[address].push_back(cycle);
 			}
-			else 
+			else
 			{
-				pendingReadRequests[address].push_back(cycle); 
+				pendingReadRequests[address].push_back(cycle);
 			}
 		}
 
 		void read_complete(unsigned id, uint64_t address, uint64_t done_cycle)
 		{
 			map<uint64_t, deque<uint64_t> >::iterator it;
-			it = pendingReadRequests.find(address); 
+			it = pendingReadRequests.find(address);
 			if (it == pendingReadRequests.end())
 			{
-				ERROR("Cant find a pending read for this one"); 
+				ERROR("Cant find a pending read for this one");
 				exit(-1);
 			}
 			else
 			{
 				if (it->second.size() == 0)
 				{
-					ERROR("Nothing here, either"); 
-					exit(-1); 
+					ERROR("Nothing here, either");
+					exit(-1);
 				}
 			}
 
 			uint64_t added_cycle = pendingReadRequests[address].front();
-			uint64_t latency = done_cycle - added_cycle;
+            uint64_t latency = done_cycle - added_cycle;
 
 			pendingReadRequests[address].pop_front();
 			numReads++;
-			//cout << "Read Callback: #"<<numReads<<": 0x"<< std::hex << address << std::dec << " latency="<<latency<<"cycles ("<< done_cycle<< "->"<<added_cycle<<")"<<endl;
+            cout << "Read Callback: #"<<numReads<<": 0x"<< std::hex << address << std::dec << " latency="<<latency<<"cycles ("<< done_cycle<< "->"<<added_cycle<<")"<<endl;
 		}
 		void write_complete(unsigned id, uint64_t address, uint64_t done_cycle)
 		{
 			map<uint64_t, deque<uint64_t> >::iterator it;
-			it = pendingWriteRequests.find(address); 
+			it = pendingWriteRequests.find(address);
 			if (it == pendingWriteRequests.end())
 			{
-				ERROR("Cant find a pending read for this one"); 
+				ERROR("Cant find a pending read for this one");
 				exit(-1);
 			}
 			else
 			{
 				if (it->second.size() == 0)
 				{
-					ERROR("Nothing here, either"); 
-					exit(-1); 
+					ERROR("Nothing here, either");
+					exit(-1);
 				}
 			}
 
 			uint64_t added_cycle = pendingWriteRequests[address].front();
-			uint64_t latency = done_cycle - added_cycle;
+            uint64_t latency = done_cycle - added_cycle;
 
 			pendingWriteRequests[address].pop_front();
 			numWrites++;
-			//cout << "Write Callback: #"<<numWrites<<" 0x"<< std::hex << address << std::dec << " latency="<<latency<<"cycles ("<< done_cycle<< "->"<<added_cycle<<")"<<endl;
+            cout << "Write Callback: #"<<numWrites<<" 0x"<< std::hex << address << std::dec << " latency="<<latency<<"cycles ("<< done_cycle<< "->"<<added_cycle<<")"<<endl;
 		}
 		void simulationDone(uint64_t cycles) {
 			DEBUG("Transaction receiver got back "<<numReads<<" reads and "<<numWrites<<" writes in "<<cycles<<" cycles\n");
 		}
 };
 
-TransactionReceiver transactionReceiver; 
+TransactionReceiver transactionReceiver;
 
 #endif
 
@@ -385,16 +385,16 @@ bool parseLineAndTryAdd(const string &line, TraceType traceType, DRAMSimInterfac
 	//DEBUG("LINE='"<<line<<"'\n");
 	parseTraceFileLine(line, addr, transType,clockCycle, traceType,useClockCycle);
 	bool isWrite = (transType == DATA_WRITE);
-	trans = memorySystem->makeTransaction(isWrite, addr, 64); 
+	trans = memorySystem->makeTransaction(isWrite, addr, 64);
 
 	if (trans && currentClockCycle >= clockCycle)
 	{
 		bool accepted = memorySystem->addTransaction(trans);
 		assert(accepted);
 #ifdef RETURN_TRANSACTIONS
-		transactionReceiver.add_pending(isWrite, addr, currentClockCycle); 
+		transactionReceiver.add_pending(isWrite, addr, currentClockCycle);
 #endif
-		return true; 
+		return true;
 	}
 	return false;
 }
@@ -529,21 +529,21 @@ int main(int argc, char **argv)
 	if (pwdString.length() > 0 && systemIniFilename[0] != '/')
 		systemIniFilename = pwdString + "/" + systemIniFilename;
 	if (pwdString.length() > 0 && deviceIniFilename[0] != '/')
-		deviceIniFilename = pwdString + "/" + deviceIniFilename; 
+		deviceIniFilename = pwdString + "/" + deviceIniFilename;
 
 	vector<std::string> iniFiles;
-	iniFiles.push_back(deviceIniFilename); 
+	iniFiles.push_back(deviceIniFilename);
 	iniFiles.push_back(systemIniFilename);
 
-	ostringstream oss; 
-	oss << megsOfMemory; 
+	ostringstream oss;
+	oss << megsOfMemory;
 
-	paramOverrides["megsOfMemory"] = oss.str(); 
+	paramOverrides["megsOfMemory"] = oss.str();
 	DRAMSimInterface *memorySystem = getMemorySystemInstance(iniFiles, "", &paramOverrides);
 
 
 	// set the frequency ratio to 1:1
-	memorySystem->setCPUClockSpeed(0); 
+	memorySystem->setCPUClockSpeed(0);
 
 	DEBUG("== Loading trace file '"<<traceFileName<<"' == ");
 
@@ -561,7 +561,7 @@ int main(int argc, char **argv)
 
 
 	int lineNumber = 0;
-	bool lastTransactionSucceeded=true; 
+	bool lastTransactionSucceeded=true;
 
 
 	traceFile.open(traceFileName.c_str());
@@ -581,7 +581,7 @@ int main(int argc, char **argv)
 		else {
 			if (!traceFile.eof())
 			{
-				// skip any blank lines in the trace 
+				// skip any blank lines in the trace
 				while (true) {
 					getline(traceFile, line);
 					lineNumber++;
@@ -595,7 +595,7 @@ int main(int argc, char **argv)
 			}
 		}
 		memorySystem->update();
-	} // end main loop 
+	} // end main loop
 
 	traceFile.close();
 	memorySystem->simulationDone();

@@ -1,15 +1,15 @@
 /**
- * These are the compiled defaults for a memory system configuration 
+ * These are the compiled defaults for a memory system configuration
  *
  * These parameters specify a Dual Channel DDR3-1600 system based on the device
  * ini file: ini/DDR3_micron_32M_8B_x4_sg125.ini . This file is in turn based
- * on the Micron MT41J256M4 part. 
+ * on the Micron MT41J256M4 part.
  *
  */
 
-// Default System.ini parameters 
+// Default System.ini parameters
 
-// see the initialization code in ConfigIniReader::finalize() and in TraceBasedSim for how these are handled 
+// see the initialization code in ConfigIniReader::finalize() and in TraceBasedSim for how these are handled
 PARAM(unsigned, NUM_RANKS, 0)
 PARAM(unsigned, megsOfMemory, 4096)
 
@@ -47,7 +47,7 @@ PARAM(unsigned,NUM_ROWS,16384)
 PARAM(unsigned,NUM_COLS,2048)
 PARAM(unsigned,DEVICE_WIDTH,4)
 
-// For power computation, we need the number of devices per rank 
+// For power computation, we need the number of devices per rank
 PARAM(unsigned, NUM_DEVICES, (JEDEC_DATA_BUS_BITS/DEVICE_WIDTH))
 
 

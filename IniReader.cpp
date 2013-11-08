@@ -52,6 +52,7 @@ OptionsMap IniReader::ReadIniFile(string filename)
 	iniFile.open(filename.c_str());
 	if (iniFile.is_open())
 	{
+		std::cerr << "Reading ini file '"<<filename<<"'\n";
 		while (!iniFile.eof())
 		{
 			lineNumber++;
@@ -101,8 +102,8 @@ OptionsMap IniReader::ReadIniFile(string filename)
 			key = line.substr(0, equalsIndex);
 			// all characters after the equals are the value
 			valueString = line.substr(equalsIndex+1,strlen-equalsIndex);
-            std::transform(valueString.begin(), valueString.end(),
-                           valueString.begin(), ::tolower);
+            //std::transform(valueString.begin(), valueString.end(),
+                           //valueString.begin(), ::tolower);
 			options[key] = valueString;
 
 		}
