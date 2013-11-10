@@ -517,18 +517,29 @@ void MemoryController::update()
 					newTransactionColumn, newTransactionRow, newTransactionRank,
 					newTransactionBank, 0, dramsim_log);
 
-            //TODO: for LH cache add request for col=0, 174 bytes+64bytes
+            //TODO: Beware of cfg.JEDEC_DATA_BUS_BITS/8(bytes transferred per
+            //      Burst)
+            //      for LH cache add request for col=0, 174 bytes+64bytes
             //      for Alloy cache request 8bytes+64bytes
+            //
 			//create read or write command and enqueue it
 			BusPacketType bpType = transaction->getBusPacketType(cfg);
 			BusPacket *command = new BusPacket(bpType, transaction->address,
 					newTransactionColumn, newTransactionRow, newTransactionRank,
 					newTransactionBank, transaction->data, dramsim_log);
 
+            //TransactionType tmp = transaction->transactionType;
+            //transaction->transactionType = DATA_WRITE;
+			//bpType = transaction->getBusPacketType(cfg);
+			//BusPacket *command2 = new BusPacket(bpType, transaction->address,
+					//newTransactionColumn, newTransactionRow, newTransactionRank,
+					//newTransactionBank, transaction->data, dramsim_log);
 
+            //transaction->transactionType = tmp;
 
 			commandQueue.enqueue(ACTcommand);
 			commandQueue.enqueue(command);
+			//commandQueue.enqueue(command2);
 
 			// If we have a read, save the transaction so when the data comes back
 			// in a bus packet, we can staple it back into a transaction and return it
@@ -793,6 +804,10 @@ void MemoryController::printStats(CSVWriter *CSVOut, bool finalStats)
 	//if we are not at the end of the epoch, make sure to adjust for the actual number of cycles elapsed
 
 	uint64_t cyclesElapsed = currentClockCycle - lastDumpCycle; //(currentClockCycle % EPOCH_LENGTH == 0) ? EPOCH_LENGTH : currentClockCycle % EPOCH_LENGTH;
+    //TODO: change bytesPerTransaction according to DRAMCache Type
+    //      LH Cache will be 174+64 bytes
+    //      Alloy Cache will be 72 bytes
+    //      WF Cache will be 72 bytes
 	unsigned bytesPerTransaction = (cfg.JEDEC_DATA_BUS_BITS*cfg.BL)/8;
 	uint64_t totalBytesTransferred = totalTransactions * bytesPerTransaction;
 	double secondsThisEpoch = (double)cyclesElapsed * cfg.tCK * 1E-9;
@@ -870,7 +885,7 @@ void MemoryController::printStats(CSVWriter *CSVOut, bool finalStats)
 			//	cout << "c="<<myChannel<< " r="<<r<<"writing to csv out on cycle "<< currentClockCycle<<endl;
 			// write the vis file output
 			if (CSVOut) {
-				CSVWriter &csvOut = *CSVOut; 
+				CSVWriter &csvOut = *CSVOut;
 				csvOut << CSVWriter::IndexedName("Background_Power",myChannel,r) <<backgroundPower[r];
 				csvOut << CSVWriter::IndexedName("ACT_PRE_Power",myChannel,r) << actprePower[r];
 				csvOut << CSVWriter::IndexedName("Burst_Power",myChannel,r) << burstPower[r];
@@ -883,15 +898,15 @@ void MemoryController::printStats(CSVWriter *CSVOut, bool finalStats)
 					totalAggregateBandwidth += bandwidth[SEQUENTIAL(r,b)];
 					csvOut << CSVWriter::IndexedName("Average_Latency",myChannel,r,b) << averageLatency[SEQUENTIAL(r,b)];
 				}
-				csvOut << CSVWriter::IndexedName("Rank_Aggregate_Bandwidth",myChannel,r) << totalRankBandwidth; 
-				csvOut << CSVWriter::IndexedName("Rank_Average_Bandwidth",myChannel,r) << totalRankBandwidth/cfg.NUM_RANKS; 
+				csvOut << CSVWriter::IndexedName("Rank_Aggregate_Bandwidth",myChannel,r) << totalRankBandwidth;
+				csvOut << CSVWriter::IndexedName("Rank_Average_Bandwidth",myChannel,r) << totalRankBandwidth/cfg.NUM_RANKS;
 			}
 		}
 	}
 	if (cfg.VIS_FILE_OUTPUT)
 	{
 		if (CSVOut) {
-			CSVWriter &csvOut = *CSVOut; 
+			CSVWriter &csvOut = *CSVOut;
 
 			csvOut << CSVWriter::IndexedName("Aggregate_Bandwidth",myChannel) << totalAggregateBandwidth;
 			csvOut << CSVWriter::IndexedName("Average_Bandwidth",myChannel) << totalAggregateBandwidth / (cfg.NUM_RANKS*cfg.NUM_BANKS);

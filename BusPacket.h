@@ -51,11 +51,11 @@ enum BusPacketType
 	DATA
 };
 
-class Config; 
+class Config;
 class BusPacket
 {
 	BusPacket();
-	ostream &dramsim_log; 
+	ostream &dramsim_log;
 public:
 	//Fields
 	BusPacketType busPacketType;
@@ -68,7 +68,7 @@ public:
     unsigned BurstLength;
 
 	//Functions
-	BusPacket(BusPacketType packtype, uint64_t physicalAddr, unsigned col, unsigned rw, unsigned r, unsigned b, void *dat, ostream &dramsim_log_);
+	BusPacket(BusPacketType packtype, uint64_t physicalAddr, unsigned col, unsigned rw, unsigned r, unsigned b, void *dat, ostream &dramsim_log_, unsigned BL_ = 8);
 
 	void print();
 	void print(uint64_t currentClockCycle, bool dataStart);
