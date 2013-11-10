@@ -51,6 +51,12 @@ enum BusPacketType
 	DATA
 };
 
+enum DRAMCachePacketType
+{
+    TAG_LOOKUP,
+    CACHE_LINE_ACCESS//including read and write
+};
+
 class Config;
 class BusPacket
 {
@@ -66,9 +72,11 @@ public:
 	uint64_t physicalAddress;
 	void *data;
     unsigned BurstLength;
+    DRAMCachePacketType dramCachePacketType;
 
 	//Functions
-	BusPacket(BusPacketType packtype, uint64_t physicalAddr, unsigned col, unsigned rw, unsigned r, unsigned b, void *dat, ostream &dramsim_log_, unsigned BL_ = 8);
+	BusPacket(BusPacketType packtype, uint64_t physicalAddr, unsigned col, unsigned rw, unsigned r, unsigned b, void *dat, ostream &dramsim_log_,
+        unsigned BL_ = 8, DRAMCachePacketType dcpackettype = CACHE_LINE_ACCESS);
 
 	void print();
 	void print(uint64_t currentClockCycle, bool dataStart);
