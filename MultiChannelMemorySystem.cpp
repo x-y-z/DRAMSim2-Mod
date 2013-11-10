@@ -2,20 +2,20 @@
 *  Copyright (c) 2010-2011, Elliott Cooper-Balis
 *                             Paul Rosenfeld
 *                             Bruce Jacob
-*                             University of Maryland 
+*                             University of Maryland
 *                             dramninjas [at] gmail [dot] com
 *  All rights reserved.
-*  
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions are met:
-*  
+*
 *     * Redistributions of source code must retain the above copyright notice,
 *        this list of conditions and the following disclaimer.
-*  
+*
 *     * Redistributions in binary form must reproduce the above copyright notice,
 *        this list of conditions and the following disclaimer in the documentation
 *        and/or other materials provided with the distribution.
-*  
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 *  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 *  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -43,28 +43,28 @@ using namespace DRAMSim;
 
 
 /**
- * Constructor. 
+ * Constructor.
  * @param cfg a Config object that should be allocated on the heap. DRAMSim2 will take ownership of this object and be responsible for freeing it. For safety, once passed to this constructor, a config struct will never be changed.
- */ 
+ */
 MultiChannelMemorySystem::MultiChannelMemorySystem(const Config &cfg_, ostream &logFile_)
-	: cfg(cfg_) 
+	: cfg(cfg_)
 	, clockDomainCrosser(new ClockDomain::Callback<MultiChannelMemorySystem, void>(this, &MultiChannelMemorySystem::actual_update))
 	, CSVOut(NULL)
 	, dumpInterval(0)
-	, dramsim_log(logFile_) 
+	, dramsim_log(logFile_)
 {
 
-	// A few sanity checks before we begin 
+	// A few sanity checks before we begin
 	if (!isPowerOfTwo(cfg.megsOfMemory))
 	{
-		ERROR("Please specify a power of 2 memory size"); 
-		abort(); 
+		ERROR("Please specify a power of 2 memory size");
+		abort();
 	}
 
-	if (cfg.NUM_CHANS == 0) 
+	if (cfg.NUM_CHANS == 0)
 	{
-		ERROR("Zero channels"); 
-		abort(); 
+		ERROR("Zero channels");
+		abort();
 	}
 
 	for (size_t i=0; i<cfg.NUM_CHANS; i++)
@@ -76,13 +76,13 @@ MultiChannelMemorySystem::MultiChannelMemorySystem(const Config &cfg_, ostream &
 
 /**
  * Initialize the ClockDomainCrosser to use the CPU speed If cpuClkFreqHz == 0,
- * then assume a 1:1 ratio (like for TraceBasedSim) 
+ * then assume a 1:1 ratio (like for TraceBasedSim)
  **/
 void MultiChannelMemorySystem::setCPUClockSpeed(uint64_t cpuClkFreqHz)
 {
 	uint64_t dramsimClkFreqHz = static_cast<uint64_t>(1.0/(cfg.tCK*1e-9));
-	clockDomainCrosser.clock1 = dramsimClkFreqHz; 
-	clockDomainCrosser.clock2 = (cpuClkFreqHz == 0) ? dramsimClkFreqHz : cpuClkFreqHz; 
+	clockDomainCrosser.clock1 = dramsimClkFreqHz;
+	clockDomainCrosser.clock2 = (cpuClkFreqHz == 0) ? dramsimClkFreqHz : cpuClkFreqHz;
 }
 
 MultiChannelMemorySystem::~MultiChannelMemorySystem()
@@ -91,13 +91,13 @@ MultiChannelMemorySystem::~MultiChannelMemorySystem()
 	{
 		delete channels[i];
 	}
-	channels.clear(); 
+	channels.clear();
 
 	dramsim_log.flush();
 
 	/*
-	if (VIS_FILE_OUTPUT) 
-	{	
+	if (VIS_FILE_OUTPUT)
+	{
 		visDataOut.flush();
 		visDataOut.close();
 	}
@@ -105,96 +105,101 @@ MultiChannelMemorySystem::~MultiChannelMemorySystem()
 }
 void MultiChannelMemorySystem::update()
 {
-	clockDomainCrosser.update(); 
+	clockDomainCrosser.update();
 }
-void MultiChannelMemorySystem::actual_update() 
+void MultiChannelMemorySystem::actual_update()
 {
 	if (currentClockCycle == 0)
 	{
-		DEBUG("DRAMSim2 Clock Frequency ="<<clockDomainCrosser.clock1<<"Hz, CPU Clock Frequency="<<clockDomainCrosser.clock2<<"Hz"); 
+		DEBUG("DRAMSim2 Clock Frequency ="<<clockDomainCrosser.clock1<<"Hz, CPU Clock Frequency="<<clockDomainCrosser.clock2<<"Hz");
 	}
 
 	if (dumpInterval > 0 && currentClockCycle % dumpInterval == 0)
 	{
 		assert(CSVOut);
-		printStats(false); 
+		printStats(false);
 		CSVOut->finalize();
 	}
-	
+
 	for (size_t i=0; i<cfg.NUM_CHANS; i++)
 	{
-		channels[i]->update(); 
+		channels[i]->update();
 	}
 
-	currentClockCycle++; 
+	currentClockCycle++;
 }
 unsigned MultiChannelMemorySystem::findChannelNumber(uint64_t addr)
 {
-	// Single channel case is a trivial shortcut case 
+	// Single channel case is a trivial shortcut case
 	if (cfg.NUM_CHANS == 1)
 	{
-		return 0; 
+		return 0;
 	}
 
 	if (!isPowerOfTwo(cfg.NUM_CHANS))
 	{
 		ERROR("We can only support power of two # of channels.\n" <<
-				"I don't know what Intel was thinking, but trying to address map half a bit is a neat trick that we're not sure how to do"); 
-		abort(); 
-	}
-
-	// only chan is used from this set 
-	unsigned channelNumber,rank,bank,row,col;
-	addressMapping(addr, channelNumber, rank, bank, row, col,cfg); 
-	if (channelNumber >= cfg.NUM_CHANS)
-	{
-		ERROR("Got channel index "<<channelNumber<<" but only "<<cfg.NUM_CHANS<<" exist"); 
+				"I don't know what Intel was thinking, but trying to address map half a bit is a neat trick that we're not sure how to do");
 		abort();
 	}
-	//DEBUG("Channel idx = "<<channelNumber<<" totalbits="<<totalBits<<" channelbits="<<channelBits); 
+
+	// only chan is used from this set
+	unsigned channelNumber,rank,bank,row,col;
+	addressMapping(addr, channelNumber, rank, bank, row, col,cfg);
+	if (channelNumber >= cfg.NUM_CHANS)
+	{
+		ERROR("Got channel index "<<channelNumber<<" but only "<<cfg.NUM_CHANS<<" exist");
+		abort();
+	}
+	//DEBUG("Channel idx = "<<channelNumber<<" totalbits="<<totalBits<<" channelbits="<<channelBits);
 
 	return channelNumber;
 }
 
 /**
- * This function returns an opaque pointer to a transaction if DRAMSim2 will accept the transaction. 
- * This pointer can be stored by the requester and used at some later point. 
- * The simulator should issue the transactions in the order they are created with this function. 
+ * This function returns an opaque pointer to a transaction if DRAMSim2 will accept the transaction.
+ * This pointer can be stored by the requester and used at some later point.
+ * The simulator should issue the transactions in the order they are created with this function.
  *
- * The problem with the old willAccept/addTransaction solution is that some simulators (like MARSS) need to know if a request will be accepted by the memory long before the request is added. 
- * This means that willAccept transaction has to give the same answer as addTransaction but at different points in time -- sometimes this gets kind of messy. 
- * With this method, makeTransaction effectively provides a token that confirms that DRAMSim2 has agreed to accept the transaction and arbitrary data can be stored in the opaque pointer. 
+ * The problem with the old willAccept/addTransaction solution is that some simulators (like MARSS) need to know if a request will be accepted by the memory long before the request is added.
+ * This means that willAccept transaction has to give the same answer as addTransaction but at different points in time -- sometimes this gets kind of messy.
+ * With this method, makeTransaction effectively provides a token that confirms that DRAMSim2 has agreed to accept the transaction and arbitrary data can be stored in the opaque pointer.
  *
- * @param isWrite is the request a write? 
+ * @param isWrite is the request a write?
  * @param addr address where to send the request
- * @param size of the data (in bytes) of the request. 
+ * @param size of the data (in bytes) of the request.
  *
- */ 
+ */
 DRAMSimTransaction *MultiChannelMemorySystem::makeTransaction(bool isWrite, uint64_t addr, unsigned requestSize) {
 	if (willAcceptTransaction(isWrite, addr)) {
-		TransactionType type = isWrite ? DATA_WRITE : DATA_READ; 
-		return (DRAMSimTransaction *)(new Transaction(type, addr, NULL)); 
+		TransactionType type = isWrite ? DATA_WRITE : DATA_READ;
+		return (DRAMSimTransaction *)(new Transaction(type, addr, NULL));
 	}
-	return NULL; 
+	return NULL;
 }
 
 void MultiChannelMemorySystem::deleteTransaction(DRAMSimTransaction *t) {
 	assert(t);
-	Transaction *trans = (Transaction*)t; 
+	Transaction *trans = (Transaction*)t;
 	delete(trans);
 }
 
 bool MultiChannelMemorySystem::addTransaction(DRAMSimTransaction *t) {
 	assert(t);
 	Transaction *trans = (Transaction *)(t);
-	unsigned channelNumber = findChannelNumber(trans->address); 
-	return channels[channelNumber]->addTransaction(trans); 
+	unsigned channelNumber = findChannelNumber(trans->address);
+	return channels[channelNumber]->addTransaction(trans);
+}
+
+bool MultiChannelMemorySystem::addTransaction(bool isWrite, uint64_t addr, unsigned, unsigned, unsigned) {
+    unsigned channelNumber = findChannelNumber(addr);
+    return channels[channelNumber]->addTransaction(isWrite, addr);
 }
 
 bool MultiChannelMemorySystem::willAcceptTransaction(bool isWrite, uint64_t addr, unsigned requestSize)
 {
 	unsigned channel = findChannelNumber(addr);
-	return channels[channel]->WillAcceptTransaction(); 
+	return channels[channel]->WillAcceptTransaction();
 }
 
 
@@ -202,32 +207,32 @@ void MultiChannelMemorySystem::printStats(bool finalStats) {
 
 	if (!CSVOut) {
 		DEBUG("WARNING: printStats called even though no CSVWriter was given");
-		return; 
+		return;
 	}
 
 	// tCK is in ns, so 1e9 * 1e-6 = 1e3 = ms
-	// TODO: this is confusing -- just divide by 1E6 instead ... 
-	(*CSVOut) << "ms" <<currentClockCycle * cfg.tCK * 1E-6; 
+	// TODO: this is confusing -- just divide by 1E6 instead ...
+	(*CSVOut) << "ms" <<currentClockCycle * cfg.tCK * 1E-6;
 	for (size_t i=0; i<cfg.NUM_CHANS; i++)
 	{
 		PRINT("==== Channel ["<<i<<"] ====");
-		channels[i]->printStats(CSVOut, finalStats); 
+		channels[i]->printStats(CSVOut, finalStats);
 		PRINT("//// Channel ["<<i<<"] ////");
 	}
 }
 
-void MultiChannelMemorySystem::registerCallbacks( 
+void MultiChannelMemorySystem::registerCallbacks(
 		TransactionCompleteCB *readDone,
 		TransactionCompleteCB *writeDone,
 		void (*reportPower)(double bgpower, double burstpower, double refreshpower, double actprepower))
 {
 	for (size_t i=0; i<cfg.NUM_CHANS; i++)
 	{
-		channels[i]->RegisterCallbacks(readDone, writeDone, reportPower); 
+		channels[i]->RegisterCallbacks(readDone, writeDone, reportPower);
 	}
 }
 void MultiChannelMemorySystem::simulationDone() {
-	printStats(true); 
+	printStats(true);
 }
 
 namespace DRAMSim {
@@ -235,50 +240,50 @@ namespace DRAMSim {
 	DRAMSimInterface *getMemorySystemInstance(const string &dev, const string &sys, const string &pwd, const string &trc, unsigned megsOfMemory) {
 		OptionsMap paramOverrides;
 
-		string systemIniFilename = sys; 
+		string systemIniFilename = sys;
 		string deviceIniFilename = dev;
 		if (pwd.length() > 0 && sys[0] != '/')
 			systemIniFilename = pwd + "/" + sys;
 		if (pwd.length() > 0 && dev[0] != '/')
-			deviceIniFilename = pwd + "/" + dev; 
+			deviceIniFilename = pwd + "/" + dev;
 
 		vector<std::string> iniFiles;
-		iniFiles.push_back(deviceIniFilename); 
+		iniFiles.push_back(deviceIniFilename);
 		iniFiles.push_back(systemIniFilename);
 
-		ostringstream oss; 
-		oss << megsOfMemory; 
+		ostringstream oss;
+		oss << megsOfMemory;
 
-		paramOverrides["megsOfMemory"] = oss.str(); 
+		paramOverrides["megsOfMemory"] = oss.str();
 		return getMemorySystemInstance(iniFiles, trc, &paramOverrides);
 	}
 
 	/**
-	 * Get a default DRAMSimInterface instance. The instance parameters will be set from the list of iniFiles and from the options map. The output file names will be DRAMSim.[simDesc].{csv,log}. 
-	 * @param iniFiles A list of ini file names to load. Note, the way the iniReader works, files later in the list will override files earlier in the list 
-	 * @param simDesc A description that will be appended to output files (.log, .csv, etc) 
+	 * Get a default DRAMSimInterface instance. The instance parameters will be set from the list of iniFiles and from the options map. The output file names will be DRAMSim.[simDesc].{csv,log}.
+	 * @param iniFiles A list of ini file names to load. Note, the way the iniReader works, files later in the list will override files earlier in the list
+	 * @param simDesc A description that will be appended to output files (.log, .csv, etc)
 	 * @param paramOverride An list of any options to manually override (will be applied after loading ini files)
 	 */
-	DRAMSimInterface *getMemorySystemInstance(const vector<std::string> &iniFiles, const string simDesc, const OptionsMap *paramOverrides) 
+	DRAMSimInterface *getMemorySystemInstance(const vector<std::string> &iniFiles, const string simDesc, const OptionsMap *paramOverrides)
 	{
-		string baseName = ""; 
+		string baseName = "";
 		if (simDesc.length() > 0 ) {
-			baseName="."+simDesc; 
+			baseName="."+simDesc;
 		}
 
-		// setup the filenames for output files 
-		// TODO: add number suffixes to avoid overwriting old ones? 
-		const string visFilenamePrefix("DRAMSim"); 
+		// setup the filenames for output files
+		// TODO: add number suffixes to avoid overwriting old ones?
+		const string visFilenamePrefix("DRAMSim");
 		const string visFilenameSuffix(".csv");
 		const string logFilenamePrefix("DRAMSim");
 		const string logFilenameSuffix(".log");
-		string visFilename = visFilenamePrefix + baseName + visFilenameSuffix; 
-		string logFilename = logFilenamePrefix + baseName + logFilenameSuffix; 
-		
-		CSVWriter &CSVOut = CSVWriter::GetCSVWriterInstance(visFilename); 
+		string visFilename = visFilenamePrefix + baseName + visFilenameSuffix;
+		string logFilename = logFilenamePrefix + baseName + logFilenameSuffix;
+
+		CSVWriter &CSVOut = CSVWriter::GetCSVWriterInstance(visFilename);
 		std::ostream &logFile = *(new std::ofstream(logFilename.c_str()));
-		
-		Config &cfg = (*new Config()); 
+
+		Config &cfg = (*new Config());
 		for (size_t i=0; i < iniFiles.size(); i++) {
 			OptionsFailedToSet failures = cfg.set(IniReader::ReadIniFile(iniFiles[i]));
 			std::cerr << "Failed to set:\n";

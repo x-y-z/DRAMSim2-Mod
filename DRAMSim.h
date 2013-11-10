@@ -36,32 +36,33 @@
  * provide all necessary functionality to talk to an external simulator
  */
 #include "Callback.h"
-#include <stdio.h> 
+#include <stdio.h>
 #include <string>
 #include <vector>
 #include <map>
-#include <list> 
+#include <list>
 
 using std::string;
 
-namespace DRAMSim 
+namespace DRAMSim
 {
 
 	typedef std::map<std::string, std::string> OptionsMap;
-	typedef std::list<std::string> OptionsFailedToSet; 
+	typedef std::list<std::string> OptionsFailedToSet;
 
-	class CSVWriter; 
+	class CSVWriter;
 	class DRAMSimTransaction;
-	class Config; 
+	class Config;
 
 	class DRAMSimInterface {
-		public: 
+		public:
 			virtual uint64_t getCycle() = 0;
 			virtual DRAMSimTransaction *makeTransaction(bool isWrite, uint64_t addr, unsigned requestSize)=0;
 			virtual void deleteTransaction(DRAMSimTransaction *t)=0;
 			virtual bool addTransaction(DRAMSimTransaction *)=0;
+			virtual bool addTransaction(bool isWrite, uint64_t addr, unsigned requestSize=64, unsigned channelIdx=100, unsigned coreID=0) = 0;
 			/*
-			virtual bool willAcceptTransaction(bool isWrite, uint64_t addr, unsigned requestSize=64, unsigned channelId=100, unsigned coreID=0) =0; 
+			virtual bool willAcceptTransaction(bool isWrite, uint64_t addr, unsigned requestSize=64, unsigned channelId=100, unsigned coreID=0) =0;
 			virtual bool addTransaction(bool isWrite, uint64_t addr, unsigned requestSize=64, unsigned channelIdx=100, unsigned coreID=0) = 0;
 			*/
 			virtual void update()=0;
@@ -69,7 +70,7 @@ namespace DRAMSim
 			virtual void setCPUClockSpeed(uint64_t cpuClkFreqHz) = 0;
 			virtual void simulationDone() = 0;
 			virtual float getUpdateClockPeriod()=0;
-			virtual void dumpStats(CSVWriter &CSVOut)=0; 
+			virtual void dumpStats(CSVWriter &CSVOut)=0;
 
 			virtual void registerCallbacks(
 				TransactionCompleteCB *readDone,
@@ -77,7 +78,7 @@ namespace DRAMSim
 				void (*reportPower)(double bgpower, double burstpower, double refreshpower, double actprepower)) = 0 ;
 	};
 	DRAMSimInterface *getMemorySystemInstance(const string &dev, const string &sys, const string &pwd, const string &trc, unsigned megsOfMemory);
-	DRAMSimInterface *getMemorySystemInstance(const std::vector<std::string> &iniFiles=std::vector<std::string>(), const string simDesc=string(""), const OptionsMap *paramOverrides=NULL); 
+	DRAMSimInterface *getMemorySystemInstance(const std::vector<std::string> &iniFiles=std::vector<std::string>(), const string simDesc=string(""), const OptionsMap *paramOverrides=NULL);
 }
 
 #endif

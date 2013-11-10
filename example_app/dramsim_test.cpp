@@ -2,20 +2,20 @@
 *  Copyright (c) 2010-2011, Elliott Cooper-Balis
 *                             Paul Rosenfeld
 *                             Bruce Jacob
-*                             University of Maryland 
+*                             University of Maryland
 *                             dramninjas [at] gmail [dot] com
 *  All rights reserved.
-*  
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions are met:
-*  
+*
 *     * Redistributions of source code must retain the above copyright notice,
 *        this list of conditions and the following disclaimer.
-*  
+*
 *     * Redistributions in binary form must reproduce the above copyright notice,
 *        this list of conditions and the following disclaimer in the documentation
 *        and/or other materials provided with the distribution.
-*  
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 *  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 *  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -32,7 +32,9 @@
 
 
 #include <stdio.h>
+#include <iostream>
 #include "dramsim_test.h"
+#include "CSVWriter.h"
 
 using namespace DRAMSim;
 
@@ -53,15 +55,16 @@ void power_callback(double a, double b, double c, double d)
 //	printf("power callback: %0.3f, %0.3f, %0.3f, %0.3f\n",a,b,c,d);
 }
 
-int some_object::add_one_and_run(MultiChannelMemorySystem *mem, uint64_t addr)
+int some_object::add_one_and_run(DRAMSimInterface *mem, uint64_t addr)
 {
+    DRAMSimTransaction *trans = NULL;
 
 	/* create a transaction and add it */
-	bool isWrite = false; 
+	bool isWrite = false;
 	mem->addTransaction(isWrite, addr);
 
-	// send a read to channel 1 on the same cycle 
-	addr = 1LL<<33 | addr; 
+	// send a read to channel 1 on the same cycle
+	addr = 1LL<<33 | addr;
 	mem->addTransaction(isWrite, addr);
 
 	for (int i=0; i<5; i++)
@@ -71,20 +74,22 @@ int some_object::add_one_and_run(MultiChannelMemorySystem *mem, uint64_t addr)
 
 	/* add another some time in the future */
 
-	// send a write to channel 0 
-	addr = 0x900012; 
-	isWrite = true; 
+	// send a write to channel 0
+	addr = 0x900012;
+	isWrite = true;
 	mem->addTransaction(isWrite, addr);
-	
+
 
 	/* do a bunch of updates (i.e. clocks) -- at some point the callback will fire */
-	for (int i=0; i<45; i++)
+	for (int i=0; i<95; i++)
 	{
 		mem->update();
 	}
 
 	/* get a nice summary of this epoch */
-	mem->printStats();
+	//mem->printStats(true);
+    CSVWriter out(std::cout);
+    mem->dumpStats(out);
 
 	return 0;
 }
@@ -96,13 +101,14 @@ int main()
 	TransactionCompleteCB *write_cb = new Callback<some_object, void, unsigned, uint64_t, uint64_t>(&obj, &some_object::write_complete);
 
 	/* pick a DRAM part to simulate */
-	MultiChannelMemorySystem *mem = getMemorySystemInstance("ini/DDR2_micron_16M_8b_x8_sg3E.ini", "system.ini", "..", "example_app", 16384); 
+	DRAMSimInterface *mem = getMemorySystemInstance("ini/DDR3_micron_8M_8B_x16_sg15.ini", "system.ini", "..", "example_app", 1024);
 
 
-	mem->RegisterCallbacks(read_cb, write_cb, power_callback);
-	MultiChannelMemorySystem *mem2 = getMemorySystemInstance("ini/DDR2_micron_16M_8b_x8_sg3E.ini", "system.ini", "..", "example_app", 16384); 
+	mem->registerCallbacks(read_cb, write_cb, power_callback);
+    mem->setCPUClockSpeed(3200000000);
+	DRAMSimInterface *mem2 = getMemorySystemInstance("ini/DDR2_micron_16M_8b_x8_sg3E.ini", "system.ini", "..", "example_app", 16384);
 
-	mem2->RegisterCallbacks(read_cb, write_cb, power_callback);
+	mem2->registerCallbacks(read_cb, write_cb, power_callback);
 
 	printf("dramsim_test main()\n");
 	printf("-----MEM1------\n");
@@ -111,6 +117,12 @@ int main()
 
 	printf("-----MEM2------\n");
 	obj.add_one_and_run(mem2, 0x300002UL);
-	return 0; 
+
+    //delete mem;
+    //delete mem2;
+    delete read_cb;
+    delete write_cb;
+
+	return 0;
 }
 

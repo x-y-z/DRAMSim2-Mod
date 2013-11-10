@@ -2,20 +2,20 @@
 *  Copyright (c) 2010-2011, Elliott Cooper-Balis
 *                             Paul Rosenfeld
 *                             Bruce Jacob
-*                             University of Maryland 
+*                             University of Maryland
 *                             dramninjas [at] gmail [dot] com
 *  All rights reserved.
-*  
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions are met:
-*  
+*
 *     * Redistributions of source code must retain the above copyright notice,
 *        this list of conditions and the following disclaimer.
-*  
+*
 *     * Redistributions in binary form must reproduce the above copyright notice,
 *        this list of conditions and the following disclaimer in the documentation
 *        and/or other materials provided with the distribution.
-*  
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 *  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 *  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -42,27 +42,28 @@ namespace DRAMSim {
 
 class MemorySystem;
 class Transaction;
-class CSVWriter; 
+class CSVWriter;
 
 class MultiChannelMemorySystem : public DRAMSimInterface, public SimulatorObject
 {
-	private: 
+	private:
 		bool willAcceptTransaction(bool isWrite, uint64_t addr, unsigned requestSize=64);
 
-	public: 
+	public:
 
-	MultiChannelMemorySystem(const Config &cfg_, ostream &logFile_=*(new onullstream())); 
+	MultiChannelMemorySystem(const Config &cfg_, ostream &logFile_=*(new onullstream()));
 
 		virtual ~MultiChannelMemorySystem();
 		uint64_t getCycle() { return currentClockCycle; }
 		DRAMSimTransaction *makeTransaction(bool isWrite, uint64_t addr, unsigned requestSize);
 		void deleteTransaction(DRAMSimTransaction *t);
-		bool addTransaction(DRAMSimTransaction *t); 
+		bool addTransaction(DRAMSimTransaction *t);
+		bool addTransaction(bool isWrite, uint64_t addr, unsigned requestSize=64, unsigned channelIdx=100, unsigned coreID=0);
 		/*
 			bool addTransaction(Transaction *trans);
 			bool addTransaction(const Transaction &trans);
 			bool addTransaction(bool isWrite, uint64_t addr, unsigned requestSize=64, unsigned channelIdx=100, unsigned coreID=0);
-			bool willAcceptTransaction(); 
+			bool willAcceptTransaction();
 			*/
 			void update();
 			void printStats(bool finalStats=false);
@@ -71,31 +72,31 @@ class MultiChannelMemorySystem : public DRAMSimInterface, public SimulatorObject
 			float getUpdateClockPeriod() {
 				return cfg.tCK;//*1E-9f;
 			}
-			void registerCallbacks( 
+			void registerCallbacks(
 				TransactionCompleteCB *readDone,
 				TransactionCompleteCB *writeDone,
 				void (*reportPower)(double bgpower, double burstpower, double refreshpower, double actprepower));
 
 	void setCPUClockSpeed(uint64_t cpuClkFreqHz);
 	void dumpStats(CSVWriter &CSVOut) {
-		printStats(false); 
+		printStats(false);
 	}
 
 	//output file
-	
+
 
 
 	private:
-		const Config &cfg; 
+		const Config &cfg;
 
 		unsigned findChannelNumber(uint64_t addr);
-		void actual_update(); 
-		vector<MemorySystem*> channels; 
-		ClockDomain::ClockDomainCrosser clockDomainCrosser; 
-		CSVWriter *CSVOut; 
+		void actual_update();
+		vector<MemorySystem*> channels;
+		ClockDomain::ClockDomainCrosser clockDomainCrosser;
+		CSVWriter *CSVOut;
 		unsigned dumpInterval;
-		std::ostream &dramsim_log; 
-	public: 
+		std::ostream &dramsim_log;
+	public:
 
 	void enableStatsDump(CSVWriter *CSVOut_, unsigned dumpInterval_=0) {
 		CSVOut = CSVOut_;
