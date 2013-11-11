@@ -2,20 +2,20 @@
 *  Copyright (c) 2010-2011, Elliott Cooper-Balis
 *                             Paul Rosenfeld
 *                             Bruce Jacob
-*                             University of Maryland 
+*                             University of Maryland
 *                             dramninjas [at] gmail [dot] com
 *  All rights reserved.
-*  
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions are met:
-*  
+*
 *     * Redistributions of source code must retain the above copyright notice,
 *        this list of conditions and the following disclaimer.
-*  
+*
 *     * Redistributions in binary form must reproduce the above copyright notice,
 *        this list of conditions and the following disclaimer in the documentation
 *        and/or other materials provided with the distribution.
-*  
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 *  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 *  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -43,16 +43,16 @@
 #include "Callback.h"
 #include "SimulatorObject.h"
 
-using std::ostream; 
-using std::deque; 
-using std::vector; 
+using std::ostream;
+using std::deque;
+using std::vector;
 
 namespace DRAMSim
 {
-class Config; 
-class CSVWriter; 
-class Rank; 
-class Transaction; 
+class Config;
+class CSVWriter;
+class Rank;
+class Transaction;
 class MemoryController;
 
 typedef void (*powerCallBack_t)(double bgpower, double burstpower, double refreshpower, double actprepower);
@@ -65,7 +65,7 @@ public:
 	virtual ~MemorySystem();
 	void update();
 	bool addTransaction(Transaction *trans);
-	bool addTransaction(bool isWrite, uint64_t addr);
+	bool addTransaction(bool isWrite, uint64_t addr, unsigned aType = 0);
 	void printStats(CSVWriter *CSVOut, bool finalStats);
 	bool WillAcceptTransaction();
 	void RegisterCallbacks(
@@ -74,11 +74,11 @@ public:
 	    void (*reportPower)(double bgpower, double burstpower, double refreshpower, double actprepower));
 
 	//fields
-	const Config &cfg; 
+	const Config &cfg;
 	ostream &dramsim_log;
 	MemoryController *memoryController;
 	vector<Rank *> *ranks;
-	deque<Transaction *> pendingTransactions; 
+	deque<Transaction *> pendingTransactions;
 
 
 	//function pointers

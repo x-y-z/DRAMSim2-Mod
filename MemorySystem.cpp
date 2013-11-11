@@ -2,20 +2,20 @@
 *  Copyright (c) 2010-2011, Elliott Cooper-Balis
 *                             Paul Rosenfeld
 *                             Bruce Jacob
-*                             University of Maryland 
+*                             University of Maryland
 *                             dramninjas [at] gmail [dot] com
 *  All rights reserved.
-*  
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions are met:
-*  
+*
 *     * Redistributions of source code must retain the above copyright notice,
 *        this list of conditions and the following disclaimer.
-*  
+*
 *     * Redistributions in binary form must reproduce the above copyright notice,
 *        this list of conditions and the following disclaimer in the documentation
 *        and/or other materials provided with the distribution.
-*  
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 *  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 *  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -66,7 +66,7 @@ MemorySystem::MemorySystem(unsigned id, unsigned int megsOfMemory, const Config 
 	// FIXME: can also just make this straight inside the class instead of as a pointer
 	memoryController = new MemoryController(this, dramsim_log);
 
-	// FIXME: no reason to have ranks be a vector<...> *, just put it straight in  
+	// FIXME: no reason to have ranks be a vector<...> *, just put it straight in
 	ranks = new vector<Rank *>();
 
 	for (size_t i=0; i<cfg.NUM_RANKS; i++)
@@ -84,12 +84,12 @@ MemorySystem::MemorySystem(unsigned id, unsigned int megsOfMemory, const Config 
 
 MemorySystem::~MemorySystem()
 {
-	/* the MemorySystem should exist for all time, nothing should be destroying it */  
+	/* the MemorySystem should exist for all time, nothing should be destroying it */
 //	ERROR("MEMORY SYSTEM DESTRUCTOR with ID "<<systemID);
 //	abort();
 
 	delete(memoryController);
-	memoryController=NULL; 
+	memoryController=NULL;
 
 	for (size_t i=0; i<cfg.NUM_RANKS; i++)
 	{
@@ -110,12 +110,25 @@ bool MemorySystem::WillAcceptTransaction()
 	return memoryController->WillAcceptTransaction();
 }
 
-bool MemorySystem::addTransaction(bool isWrite, uint64_t addr)
+bool MemorySystem::addTransaction(bool isWrite, uint64_t addr, unsigned aType)
 {
+    DRAMCacheTransType dramType = MEM_ACCESS;
+    switch(aType)
+    {
+        case 0:
+            dramType = MEM_ACCESS;
+            break;
+        case 1:
+            dramType = CACHE_HIT;
+            break;
+        case 2:
+            dramType = CACHE_MISS;
+            break;
+    }
 	TransactionType type = isWrite ? DATA_WRITE : DATA_READ;
-	Transaction *trans = new Transaction(type,addr,NULL);
+	Transaction *trans = new Transaction(type,addr,NULL, dramType);
 
-	if (memoryController->WillAcceptTransaction()) 
+	if (memoryController->WillAcceptTransaction())
 	{
 		return memoryController->addTransaction(trans);
 	}

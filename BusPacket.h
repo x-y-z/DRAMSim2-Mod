@@ -53,8 +53,10 @@ enum BusPacketType
 
 enum DRAMCachePacketType
 {
-    TAG_LOOKUP,
-    CACHE_LINE_ACCESS//including read and write
+    TAG_LOOKUP_HIT, //this will not get back to memory controller
+    TAG_LOOKUP_MISS,//this will get back to memory controller
+    CACHE_LINE_ACCESS//including read and write, will get back to memory
+                     //controller
 };
 
 class Config;

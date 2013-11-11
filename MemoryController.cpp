@@ -517,16 +517,39 @@ void MemoryController::update()
 					newTransactionColumn, newTransactionRow, newTransactionRank,
 					newTransactionBank, 0, dramsim_log);
 
+			commandQueue.enqueue(ACTcommand);
             //TODO: Beware of cfg.JEDEC_DATA_BUS_BITS/8(bytes transferred per
             //      Burst)
             //      for LH cache add request for col=0, 174 bytes+64bytes
             //      for Alloy cache request 8bytes+64bytes
             //
+            //      For LH cache, if transaction is a cache miss, assert
+            //      its address to be aligned to the beginning of 2KB size
+
+            BusPacketType bpType = READ;
+            BusPacket *command = NULL;
+            switch(transaction->dramCacheTransType)
+            {
+                case MEM_ACCESS:
+                    //create read or write command and enqueue it
+                    bpType = transaction->getBusPacketType(cfg);
+                    command = new BusPacket(bpType, transaction->address,
+                            newTransactionColumn, newTransactionRow, newTransactionRank,
+                            newTransactionBank, transaction->data, dramsim_log);
+
+                    commandQueue.enqueue(command);
+
+                    break;
+                case CACHE_HIT:
+                    break;
+                case CACHE_MISS:
+                    break;
+            }
 			//create read or write command and enqueue it
-			BusPacketType bpType = transaction->getBusPacketType(cfg);
-			BusPacket *command = new BusPacket(bpType, transaction->address,
-					newTransactionColumn, newTransactionRow, newTransactionRank,
-					newTransactionBank, transaction->data, dramsim_log);
+			//BusPacketType bpType = transaction->getBusPacketType(cfg);
+			//BusPacket *command = new BusPacket(bpType, transaction->address,
+					//newTransactionColumn, newTransactionRow, newTransactionRank,
+					//newTransactionBank, transaction->data, dramsim_log);
 
             //TransactionType tmp = transaction->transactionType;
             //transaction->transactionType = DATA_WRITE;
@@ -537,8 +560,6 @@ void MemoryController::update()
 
             //transaction->transactionType = tmp;
 
-			commandQueue.enqueue(ACTcommand);
-			commandQueue.enqueue(command);
 			//commandQueue.enqueue(command2);
 
 			// If we have a read, save the transaction so when the data comes back

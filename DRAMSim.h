@@ -60,7 +60,7 @@ namespace DRAMSim
 			virtual DRAMSimTransaction *makeTransaction(bool isWrite, uint64_t addr, unsigned requestSize)=0;
 			virtual void deleteTransaction(DRAMSimTransaction *t)=0;
 			virtual bool addTransaction(DRAMSimTransaction *)=0;
-			virtual bool addTransaction(bool isWrite, uint64_t addr, unsigned requestSize=64, unsigned channelIdx=100, unsigned coreID=0) = 0;
+			virtual bool addTransaction(bool isWrite, uint64_t addr, unsigned requestSize=64, unsigned channelIdx=100, unsigned coreID=0, unsigned aType=0) = 0;
 			/*
 			virtual bool willAcceptTransaction(bool isWrite, uint64_t addr, unsigned requestSize=64, unsigned channelId=100, unsigned coreID=0) =0;
 			virtual bool addTransaction(bool isWrite, uint64_t addr, unsigned requestSize=64, unsigned channelIdx=100, unsigned coreID=0) = 0;

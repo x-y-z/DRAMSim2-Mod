@@ -2,20 +2,20 @@
 *  Copyright (c) 2010-2011, Elliott Cooper-Balis
 *                             Paul Rosenfeld
 *                             Bruce Jacob
-*                             University of Maryland 
+*                             University of Maryland
 *                             dramninjas [at] gmail [dot] com
 *  All rights reserved.
-*  
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions are met:
-*  
+*
 *     * Redistributions of source code must retain the above copyright notice,
 *        this list of conditions and the following disclaimer.
-*  
+*
 *     * Redistributions in binary form must reproduce the above copyright notice,
 *        this list of conditions and the following disclaimer in the documentation
 *        and/or other materials provided with the distribution.
-*  
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 *  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 *  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -38,7 +38,7 @@
 #include "SystemConfiguration.h"
 #include "BusPacket.h"
 
-using std::ostream; 
+using std::ostream;
 
 namespace DRAMSim
 {
@@ -47,6 +47,13 @@ enum TransactionType
 	DATA_READ,
 	DATA_WRITE,
 	RETURN_DATA
+};
+
+enum DRAMCacheTransType
+{
+    MEM_ACCESS,
+    CACHE_HIT,
+    CACHE_MISS
 };
 
 class Transaction
@@ -59,11 +66,12 @@ public:
 	void *data;
 	uint64_t timeAdded;
 	uint64_t timeReturned;
+    DRAMCacheTransType dramCacheTransType;
 
 
 	friend ostream &operator<<(ostream &os, const Transaction &t);
 	//functions
-	Transaction(TransactionType transType, uint64_t addr, void *data);
+	Transaction(TransactionType transType, uint64_t addr, void *data, DRAMCacheTransType aType = MEM_ACCESS);
 	Transaction(const Transaction &t);
 
 	BusPacketType getBusPacketType(const Config &cfg) const;

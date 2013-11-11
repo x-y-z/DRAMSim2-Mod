@@ -81,7 +81,7 @@ int some_object::add_one_and_run(DRAMSimInterface *mem, uint64_t addr)
 
 
 	/* do a bunch of updates (i.e. clocks) -- at some point the callback will fire */
-	for (int i=0; i<95; i++)
+	for (int i=0; i<195; i++)
 	{
 		mem->update();
 	}
@@ -105,7 +105,7 @@ int main()
 
 
 	mem->registerCallbacks(read_cb, write_cb, power_callback);
-    mem->setCPUClockSpeed(3200000000);
+    //mem->setCPUClockSpeed(3200000000);
 	DRAMSimInterface *mem2 = getMemorySystemInstance("ini/DDR2_micron_16M_8b_x8_sg3E.ini", "system.ini", "..", "example_app", 16384);
 
 	mem2->registerCallbacks(read_cb, write_cb, power_callback);

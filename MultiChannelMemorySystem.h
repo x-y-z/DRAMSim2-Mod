@@ -58,7 +58,7 @@ class MultiChannelMemorySystem : public DRAMSimInterface, public SimulatorObject
 		DRAMSimTransaction *makeTransaction(bool isWrite, uint64_t addr, unsigned requestSize);
 		void deleteTransaction(DRAMSimTransaction *t);
 		bool addTransaction(DRAMSimTransaction *t);
-		bool addTransaction(bool isWrite, uint64_t addr, unsigned requestSize=64, unsigned channelIdx=100, unsigned coreID=0);
+		bool addTransaction(bool isWrite, uint64_t addr, unsigned requestSize=64, unsigned channelIdx=100, unsigned coreID=0, unsigned aType=0);
 		/*
 			bool addTransaction(Transaction *trans);
 			bool addTransaction(const Transaction &trans);
