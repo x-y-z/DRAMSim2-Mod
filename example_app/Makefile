@@ -3,5 +3,8 @@
 dramsim_test: dramsim_test.cpp
 	$(CXX) -g -o dramsim_test dramsim_test.cpp -I../include -L../lib -ldramsim -Wl,-rpath=../lib
 
+dramcache_test: dramcache_test.cpp
+	$(CXX) -g -o dramcache_test dramcache_test.cpp -I../include -L../lib -ldramsim -Wl,-rpath=../lib
+
 clean:
-	rm dramsim_test
+	rm dramsim_test dramcache_test

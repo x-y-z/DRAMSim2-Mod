@@ -75,6 +75,8 @@ public:
 	void *data;
     unsigned BurstLength;
     DRAMCachePacketType dramCachePacketType;
+    unsigned dataCol;
+	BusPacketType dataPacketType;
 
 	//Functions
 	BusPacket(BusPacketType packtype, uint64_t physicalAddr, unsigned col, unsigned rw, unsigned r, unsigned b, void *dat, ostream &dramsim_log_,

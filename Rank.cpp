@@ -308,30 +308,22 @@ void Rank::update()
 
 	if (readReturnCountdown.size() > 0 && readReturnCountdown[0]==0)
 	{
-        if (readReturnPacket.at(0)->dramCachePacketType == TAG_LOOKUP_HIT)
-        {
-            readReturnPacket.erase(readReturnPacket.begin());
-            readReturnCountdown.erase(readReturnCountdown.begin());
-        }
-        else
-        {
-            // RL time has passed since the read was issued; this packet is
-            // ready to go out on the bus
+		// RL time has passed since the read was issued; this packet is
+		// ready to go out on the bus
 
-            outgoingDataPacket = readReturnPacket[0];
-            dataCyclesLeft = /*cfg.BL*/outgoingDataPacket->BurstLength/2;
+		outgoingDataPacket = readReturnPacket[0];
+		dataCyclesLeft = /*cfg.BL*/outgoingDataPacket->BurstLength/2;
 
-            // remove the packet from the ranks
-            readReturnPacket.erase(readReturnPacket.begin());
-            readReturnCountdown.erase(readReturnCountdown.begin());
+		// remove the packet from the ranks
+		readReturnPacket.erase(readReturnPacket.begin());
+		readReturnCountdown.erase(readReturnCountdown.begin());
 
-            if (cfg.DEBUG_BUS)
-            {
-                PRINTN(" -- R" << this->id << " Issuing On Data Bus : ");
-                outgoingDataPacket->print();
-                PRINT("");
-            }
-        }
+		if (cfg.DEBUG_BUS)
+		{
+			PRINTN(" -- R" << this->id << " Issuing On Data Bus : ");
+			outgoingDataPacket->print();
+			PRINT("");
+		}
 
 	}
 }

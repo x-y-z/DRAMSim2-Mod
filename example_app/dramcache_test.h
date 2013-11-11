@@ -27,13 +27,18 @@
 *  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************************/
-#ifndef _ADDRESS_MAPPING_H_
-#define _ADDRESS_MAPPING_H_
-namespace DRAMSim
-{
-	class Config;
-	void addressMapping(uint64_t physicalAddress, unsigned &channel, unsigned &rank, unsigned &bank, unsigned &row, unsigned &col, const Config &cfg, unsigned burstLength = 0);
-    unsigned burstLengthCalculator(unsigned dataLength, unsigned burstWidth, unsigned BL = 2);
-}
 
-#endif
+
+
+
+#include <string>
+#include <stdint.h>
+#include <DRAMSim.h>
+
+class some_object
+{
+	public:
+		void read_complete(unsigned, uint64_t, uint64_t);
+		void write_complete(unsigned, uint64_t, uint64_t);
+		int add_one_and_run(DRAMSim::DRAMSimInterface *mem, uint64_t addr);
+};

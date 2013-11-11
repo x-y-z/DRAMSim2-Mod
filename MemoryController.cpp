@@ -109,9 +109,23 @@ void MemoryController::receiveFromBus(BusPacket *bpacket)
 		bpacket->print();
 	}
 
-	//add to return read data queue
-	returnTransaction.push_back(new Transaction(RETURN_DATA, bpacket->physicalAddress, bpacket->data));
-	totalReadsPerBank[SEQUENTIAL(bpacket->rank,bpacket->bank)]++;
+    if (bpacket->dramCachePacketType == TAG_LOOKUP_HIT)
+    {
+
+        BusPacket *command = new BusPacket(bpacket->dataPacketType, bpacket->physicalAddress,
+                bpacket->dataCol, bpacket->row, bpacket->rank,
+                bpacket->bank, bpacket->data, dramsim_log,
+                burstLengthCalculator(64, cfg.JEDEC_DATA_BUS_BITS/8, cfg.BL)
+                );
+
+        commandQueue.enqueue(command);
+    }
+    else
+    {
+        //add to return read data queue
+        returnTransaction.push_back(new Transaction(RETURN_DATA, bpacket->physicalAddress, bpacket->data));
+        totalReadsPerBank[SEQUENTIAL(bpacket->rank,bpacket->bank)]++;
+    }
 
 	// this delete statement saves a mindboggling amount of memory
 	delete(bpacket);
@@ -541,8 +555,69 @@ void MemoryController::update()
 
                     break;
                 case CACHE_HIT:
+                    if (cfg.DRAM_CACHE_TYPE == LHCache)
+                    {
+                        TransactionType tmp = transaction->transactionType;
+                        transaction->transactionType = DATA_READ;
+                        bpType = transaction->getBusPacketType(cfg);
+                        command = new BusPacket(bpType, transaction->address,
+                                0, newTransactionRow, newTransactionRank,
+                                newTransactionBank, transaction->data, dramsim_log,
+                                burstLengthCalculator(172, cfg.JEDEC_DATA_BUS_BITS/8, cfg.BL),
+                                TAG_LOOKUP_HIT);
+                        command->dataCol = newTransactionColumn;
+
+                        transaction->transactionType = tmp;
+                        command->dataPacketType = transaction->getBusPacketType(cfg);
+
+                        commandQueue.enqueue(command);
+
+                        //transaction->transactionType = tmp;
+                        //bpType = transaction->getBusPacketType(cfg);
+                        //command = new BusPacket(bpType, transaction->address,
+                                //0, newTransactionRow, newTransactionRank,
+                                //newTransactionBank, transaction->data, dramsim_log,
+                                //burstLengthCalculator(64, cfg.JEDEC_DATA_BUS_BITS/8)
+                                //);
+
+                        //commandQueue.enqueue(command);
+                    }
+                    else if (cfg.DRAM_CACHE_TYPE == AlloyCache ||
+                             cfg.DRAM_CACHE_TYPE == WFCache)
+                    {
+
+                    }
+                    else
+                    {
+                        ERROR("Unsupported DRAM cache type!");
+                        abort();
+                    }
                     break;
                 case CACHE_MISS:
+                    if (cfg.DRAM_CACHE_TYPE == LHCache)
+                    {
+                        assert(transaction->transactionType == DATA_READ);
+                        //TODO: check transaction->address is aligned to 2KB
+                        bpType = transaction->getBusPacketType(cfg);
+                        command = new BusPacket(bpType, transaction->address,
+                                0, newTransactionRow, newTransactionRank,
+                                newTransactionBank, transaction->data, dramsim_log,
+                                burstLengthCalculator(172, cfg.JEDEC_DATA_BUS_BITS/8, cfg.BL),
+                                TAG_LOOKUP_MISS);
+
+                        commandQueue.enqueue(command);
+                    }
+                    else if (cfg.DRAM_CACHE_TYPE == AlloyCache ||
+                             cfg.DRAM_CACHE_TYPE == WFCache)
+                    {
+
+                    }
+                    else
+                    {
+                        ERROR("Unsupported DRAM cache type!");
+                        abort();
+                    }
+
                     break;
             }
 			//create read or write command and enqueue it

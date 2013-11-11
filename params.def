@@ -24,7 +24,7 @@ PARAM(DRAMSim::AddressMappingScheme,ADDRESS_MAPPING_SCHEME,Scheme7) //valid Sche
 PARAM(DRAMSim::SchedulingPolicy,SCHEDULING_POLICY,RankThenBankRoundRobin) // BankThenRankRoundRobin or RankThenBankRoundRobin
 PARAM(DRAMSim::QueuingStructure,QUEUING_STRUCTURE,PerRank) //PerRank or PerRankPerBank
 
-PARAM(DRAMSim::DRAMCacheType, dramCacheType, LHCache)
+PARAM(DRAMSim::DRAMCacheType, DRAM_CACHE_TYPE, JustMem)
 
 //for true/false, please use all lowercase
 PARAM(bool,DEBUG_TRANS_Q,false)

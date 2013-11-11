@@ -52,7 +52,8 @@ BusPacket::BusPacket(BusPacketType packtype, uint64_t physicalAddr,
 	physicalAddress(physicalAddr),
 	data(dat),
     BurstLength(BL_),
-    dramCachePacketType(dcpackettype)
+    dramCachePacketType(dcpackettype),
+    dataCol(0)
 {}
 
 void BusPacket::print(uint64_t currentClockCycle, bool dataStart)
