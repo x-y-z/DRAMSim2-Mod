@@ -8,3 +8,4 @@ results/
 *.lo
 DRAMSim
 libdramsim.so
+Makefile
