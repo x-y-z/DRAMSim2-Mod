@@ -112,6 +112,13 @@ void MemoryController::receiveFromBus(BusPacket *bpacket)
     if (bpacket->dramCachePacketType == TAG_LOOKUP_HIT)
     {
 
+        //create activate command to the row we just translated
+        BusPacket *ACTcommand = new BusPacket(ACTIVATE, bpacket->physicalAddress,
+                bpacket->dataCol, bpacket->row, bpacket->rank,
+                bpacket->bank, 0, dramsim_log);
+
+        commandQueue.enqueue(ACTcommand);
+
         BusPacket *command = new BusPacket(bpacket->dataPacketType, bpacket->physicalAddress,
                 bpacket->dataCol, bpacket->row, bpacket->rank,
                 bpacket->bank, bpacket->data, dramsim_log,
@@ -563,6 +570,13 @@ void MemoryController::update()
                 case CACHE_HIT:
                     if (cfg.DRAM_CACHE_TYPE == LHCache)
                     {
+						//addressMapping(transaction->address, newTransactionChan,
+                                       //newTransactionRank, newTransactionBank,
+                                       //newTransactionRow, newTransactionColumn,
+                                       //cfg,
+                                       //burstLengthCalculator(172, cfg.JEDEC_DATA_BUS_BITS/8, cfg.BL)
+                            //);
+
                         TransactionType tmp = transaction->transactionType;
                         transaction->transactionType = DATA_READ;
                         bpType = transaction->getBusPacketType(cfg);
