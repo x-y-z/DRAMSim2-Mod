@@ -226,7 +226,10 @@ void MemoryController::update()
 	{
 		for (size_t i=0;i<writeDataCountdown.size();i++)
 		{
-			writeDataCountdown[i]--;
+            if (writeDataCountdown[0] > 0)
+            {
+			    writeDataCountdown[i]--;
+            }
 		}
 
 		if (writeDataCountdown[0]==0)
@@ -241,18 +244,21 @@ void MemoryController::update()
 			// queue up the packet to be sent
 			if (outgoingDataPacket != NULL)
 			{
-				ERROR("== Error - Data Bus Collision");
-				exit(-1);
+				//ERROR("== Error - Data Bus Collision");
+                //assert(0);
+				//exit(-1);
 			}
+            else
+            {
+                outgoingDataPacket = writeDataToSend[0];
+                dataCyclesLeft = /*cfg.BL*/outgoingDataPacket->BurstLength/2;
 
-			outgoingDataPacket = writeDataToSend[0];
-			dataCyclesLeft = /*cfg.BL*/outgoingDataPacket->BurstLength/2;
+                totalTransactions++;
+                totalWritesPerBank[SEQUENTIAL(writeDataToSend[0]->rank,writeDataToSend[0]->bank)]++;
 
-			totalTransactions++;
-			totalWritesPerBank[SEQUENTIAL(writeDataToSend[0]->rank,writeDataToSend[0]->bank)]++;
-
-			writeDataCountdown.erase(writeDataCountdown.begin());
-			writeDataToSend.erase(writeDataToSend.begin());
+                writeDataCountdown.erase(writeDataCountdown.begin());
+                writeDataToSend.erase(writeDataToSend.begin());
+            }
 		}
 	}
 
@@ -585,7 +591,15 @@ void MemoryController::update()
                     else if (cfg.DRAM_CACHE_TYPE == AlloyCache ||
                              cfg.DRAM_CACHE_TYPE == WFCache)
                     {
+                        bpType = transaction->getBusPacketType(cfg);
+                        command = new BusPacket(bpType, transaction->address,
+                                newTransactionColumn, newTransactionRow, newTransactionRank,
+                                newTransactionBank, transaction->data, dramsim_log,
+                                burstLengthCalculator(72, cfg.JEDEC_DATA_BUS_BITS/8, cfg.BL),
+                                CACHE_LINE_ACCESS);
+                        command->dataCol = newTransactionColumn;
 
+                        commandQueue.enqueue(command);
                     }
                     else
                     {
@@ -610,7 +624,15 @@ void MemoryController::update()
                     else if (cfg.DRAM_CACHE_TYPE == AlloyCache ||
                              cfg.DRAM_CACHE_TYPE == WFCache)
                     {
+                        bpType = transaction->getBusPacketType(cfg);
+                        command = new BusPacket(bpType, transaction->address,
+                                newTransactionColumn, newTransactionRow, newTransactionRank,
+                                newTransactionBank, transaction->data, dramsim_log,
+                                burstLengthCalculator(72, cfg.JEDEC_DATA_BUS_BITS/8, cfg.BL),
+                                CACHE_LINE_ACCESS);
+                        command->dataCol = newTransactionColumn;
 
+                        commandQueue.enqueue(command);
                     }
                     else
                     {

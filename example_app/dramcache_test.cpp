@@ -118,7 +118,7 @@ int main()
 	printf("dramsim_test main()\n");
 	printf("-----MEM1------\n");
 	obj.add_one_and_run(mem, 0x100001UL);
-	//obj.add_one_and_run(mem, 0x200002UL);
+	obj.add_one_and_run(mem, 0x200002UL);
 
 	//printf("-----MEM2------\n");
 	//obj.add_one_and_run(mem2, 0x300002UL);

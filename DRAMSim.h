@@ -55,6 +55,8 @@ namespace DRAMSim
 	class Config;
 
 	class DRAMSimInterface {
+        public:
+            virtual ~DRAMSimInterface(){};
 		public:
 			virtual uint64_t getCycle() = 0;
 			virtual DRAMSimTransaction *makeTransaction(bool isWrite, uint64_t addr, unsigned requestSize)=0;
