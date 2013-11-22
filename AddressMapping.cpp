@@ -321,6 +321,6 @@ void addressMapping(uint64_t physicalAddress, unsigned &newTransactionChan, unsi
 
 unsigned burstLengthCalculator(unsigned dataLength, unsigned burstWidth, unsigned BL)
 {
-    return dataLength/burstWidth/BL + (dataLength % (BL*burstWidth) ==0?0:1);
+    return dataLength/(BL*burstWidth) + (dataLength % (BL*burstWidth) ==0?0:1);
 }
 };

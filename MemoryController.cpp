@@ -112,6 +112,7 @@ void MemoryController::receiveFromBus(BusPacket *bpacket)
     if (bpacket->dramCachePacketType == TAG_LOOKUP_HIT)
     {
 
+        //std::cout<<"Address:0x"<<std::hex<<bpacket->physicalAddress<<", Look for data at:"<<std::dec<<currentClockCycle<<std::endl;
         //create activate command to the row we just translated
         BusPacket *ACTcommand = new BusPacket(ACTIVATE, bpacket->physicalAddress,
                 bpacket->dataCol, bpacket->row, bpacket->rank,
@@ -119,12 +120,14 @@ void MemoryController::receiveFromBus(BusPacket *bpacket)
 
         commandQueue.enqueue(ACTcommand);
 
+        //unsigned bl =0;
         BusPacket *command = new BusPacket(bpacket->dataPacketType, bpacket->physicalAddress,
                 bpacket->dataCol, bpacket->row, bpacket->rank,
                 bpacket->bank, bpacket->data, dramsim_log,
                 burstLengthCalculator(64, cfg.JEDEC_DATA_BUS_BITS/8, cfg.BL)
                 );
 
+        //std::cout<<"Burst Length is :"<<bl<<std::endl;
         commandQueue.enqueue(command);
     }
     else
@@ -562,7 +565,8 @@ void MemoryController::update()
                     bpType = transaction->getBusPacketType(cfg);
                     command = new BusPacket(bpType, transaction->address,
                             newTransactionColumn, newTransactionRow, newTransactionRank,
-                            newTransactionBank, transaction->data, dramsim_log);
+                            newTransactionBank, transaction->data, dramsim_log,
+                            burstLengthCalculator(64, cfg.JEDEC_DATA_BUS_BITS/8, cfg.BL));
 
                     commandQueue.enqueue(command);
 
