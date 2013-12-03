@@ -66,21 +66,21 @@ int some_object::add_one_and_run(DRAMSimInterface *mem, uint64_t addr)
 	mem->addTransaction(isWrite, addr,0,0,0,1);
 
 	// send a read to channel 1 on the same cycle
-    addr = 1LL<<33 | addr;
-    mem->addTransaction(isWrite, addr,0,0,0,2);
+    //addr = 1LL<<33 | addr;
+    //mem->addTransaction(isWrite, addr,0,0,0,2);
 
-	for (int i=0; i<5; i++)
-	{
-        cpu_cycle++;
-		mem->update();
-	}
+	//for (int i=0; i<5; i++)
+	//{
+        //cpu_cycle++;
+		//mem->update();
+	//}
 
 	/* add another some time in the future */
 
 	// send a write to channel 0
-    addr = 0x900012;
-    isWrite = true;
-    mem->addTransaction(isWrite, addr,0,0,0,1);
+    //addr = 0x900012;
+    //isWrite = true;
+    //mem->addTransaction(isWrite, addr,0,0,0,1);
 
 
 	/* do a bunch of updates (i.e. clocks) -- at some point the callback will fire */
@@ -105,19 +105,19 @@ int main()
 	TransactionCompleteCB *write_cb = new Callback<some_object, void, unsigned, uint64_t, uint64_t>(&obj, &some_object::write_complete);
 
 	/* pick a DRAM part to simulate */
-	DRAMSimInterface *mem = getMemorySystemInstance("ini/DDR_micron.ini", "example_app/system.ini", "..", "example_app", 1024);
+	DRAMSimInterface *mem = getMemorySystemInstance("ini/DDR_micron_256.ini", "example_app/system.ini", "..", "example_app", 256);
 
     cpu_cycle = 0;
 
 	mem->registerCallbacks(read_cb, write_cb, power_callback);
-    mem->setCPUClockSpeed(2*333333333);
+    mem->setCPUClockSpeed(2*1600000000UL);
 	//DRAMSimInterface *mem2 = getMemorySystemInstance("ini/DDR2_micron_16M_8b_x8_sg3E.ini", "system.ini", "..", "example_app", 16384);
 
 	//mem2->registerCallbacks(read_cb, write_cb, power_callback);
 
 	printf("dramsim_test main()\n");
 	printf("-----MEM1------\n");
-	obj.add_one_and_run(mem, 0x100001UL);
+	obj.add_one_and_run(mem, 0x2000000000001UL);
 	obj.add_one_and_run(mem, 0x200002UL);
 
 	//printf("-----MEM2------\n");

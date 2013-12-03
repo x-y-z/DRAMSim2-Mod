@@ -277,8 +277,11 @@ namespace DRAMSim {
 		const string visFilenameSuffix(".csv");
 		const string logFilenamePrefix("DRAMSim");
 		const string logFilenameSuffix(".log");
-		string visFilename = visFilenamePrefix + baseName + visFilenameSuffix;
-		string logFilename = logFilenamePrefix + baseName + logFilenameSuffix;
+		string visFilename = visFilenamePrefix + baseName;// + visFilenameSuffix;
+		string logFilename = logFilenamePrefix + baseName;// + logFilenameSuffix;
+
+        visFilename = FilenameWithNumberSuffix(visFilename, visFilenameSuffix, 2000);
+        logFilename = FilenameWithNumberSuffix(logFilename, logFilenameSuffix, 2000);
 
 		CSVWriter &CSVOut = CSVWriter::GetCSVWriterInstance(visFilename);
 		std::ostream &logFile = *(new std::ofstream(logFilename.c_str()));
