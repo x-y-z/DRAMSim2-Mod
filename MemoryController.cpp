@@ -940,11 +940,32 @@ void MemoryController::printStats(CSVWriter *CSVOut, bool finalStats)
 	//if we are not at the end of the epoch, make sure to adjust for the actual number of cycles elapsed
 
 	uint64_t cyclesElapsed = currentClockCycle - lastDumpCycle; //(currentClockCycle % EPOCH_LENGTH == 0) ? EPOCH_LENGTH : currentClockCycle % EPOCH_LENGTH;
-    //TODO: change bytesPerTransaction according to DRAMCache Type
+    // change bytesPerTransaction according to DRAMCache Type
     //      LH Cache will be 174+64 bytes
     //      Alloy Cache will be 72 bytes
     //      WF Cache will be 72 bytes
 	unsigned bytesPerTransaction = (cfg.JEDEC_DATA_BUS_BITS*cfg.BL)/8;
+    switch (cfg.DRAM_CACHE_TYPE)
+    {
+        case LHCache:
+            bytesPerTransaction = bytesPerTransaction *
+                burstLengthCalculator(238, cfg.JEDEC_DATA_BUS_BITS/8, cfg.BL);
+            break;
+        case AlloyCache:
+            bytesPerTransaction = bytesPerTransaction *
+                burstLengthCalculator(72, cfg.JEDEC_DATA_BUS_BITS/8, cfg.BL);
+            break;
+        case WFCache:
+            bytesPerTransaction = bytesPerTransaction *
+                burstLengthCalculator(72, cfg.JEDEC_DATA_BUS_BITS/8, cfg.BL);
+            break;
+        case JustMem:
+	        bytesPerTransaction = (cfg.JEDEC_DATA_BUS_BITS*cfg.BL)/8;
+            break;
+        default:
+	        bytesPerTransaction = (cfg.JEDEC_DATA_BUS_BITS*cfg.BL)/8;
+            break;
+    }
 	uint64_t totalBytesTransferred = totalTransactions * bytesPerTransaction;
 	double secondsThisEpoch = (double)cyclesElapsed * cfg.tCK * 1E-9;
 
@@ -994,7 +1015,8 @@ void MemoryController::printStats(CSVWriter *CSVOut, bool finalStats)
 		PRINT( " ("<<totalWritesPerRank[r] * bytesPerTransaction<<" bytes)");
 		for (size_t j=0;j<cfg.NUM_BANKS;j++)
 		{
-			PRINT( "        -Bandwidth / Latency  (Bank " <<j<<"): " <<bandwidth[SEQUENTIAL(r,j)] << " GB/s\t\t" <<averageLatency[SEQUENTIAL(r,j)] << " ns");
+			PRINT( "        -Bandwidth / Latency / RowBuffer Hit Rate (Bank " <<j<<"): " <<bandwidth[SEQUENTIAL(r,j)] << " GB/s\t" <<averageLatency[SEQUENTIAL(r,j)] << " ns\t"
+                   <<(double)bankStates[r][j].rowBufferHitTimes/bankStates[r][j].rowBufferAccessTimes);
 		}
 
 		// factor of 1000 at the end is to account for the fact that totalEnergy is accumulated in mJ since IDD values are given in mA

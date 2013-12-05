@@ -91,6 +91,17 @@ void Rank::receiveFromBus(BusPacket *packet)
 			exit(0);
 		}
 
+        ++bankStates[packet->bank].rowBufferAccessTimes;
+        if (packet->row == bankStates[packet->bank].lastOpenRow)
+        {
+            ++bankStates[packet->bank].rowBufferHitTimes;
+        }
+        else
+        {
+            ++bankStates[packet->bank].rowBufferMissTimes;
+            bankStates[packet->bank].lastOpenRow = packet->row;
+        }
+
 		//update state table
 		bankStates[packet->bank].nextPrecharge = max(bankStates[packet->bank].nextPrecharge, currentClockCycle + cfg.READ_TO_PRE_DELAY);
 		for (size_t i=0;i<cfg.NUM_BANKS;i++)
@@ -148,6 +159,17 @@ void Rank::receiveFromBus(BusPacket *packet)
 			bankStates[packet->bank].print();
 			exit(0);
 		}
+
+        ++bankStates[packet->bank].rowBufferAccessTimes;
+        if (packet->row == bankStates[packet->bank].lastOpenRow)
+        {
+            ++bankStates[packet->bank].rowBufferHitTimes;
+        }
+        else
+        {
+            ++bankStates[packet->bank].rowBufferMissTimes;
+            bankStates[packet->bank].lastOpenRow = packet->row;
+        }
 
 		//update state table
 		bankStates[packet->bank].nextPrecharge = max(bankStates[packet->bank].nextPrecharge, currentClockCycle + cfg.WRITE_TO_PRE_DELAY);
