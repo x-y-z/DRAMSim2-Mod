@@ -336,6 +336,17 @@ void MemoryController::update()
 							bankStates[rank][bank].nextPrecharge);
 					bankStates[rank][bank].lastCommand = READ;
 
+                    ++bankStates[rank][bank].rowBufferAccessTimes;
+                    if (poppedBusPacket->row == bankStates[rank][bank].lastOpenRow)
+                    {
+                        ++bankStates[rank][bank].rowBufferHitTimes;
+                    }
+                    else
+                    {
+                        ++bankStates[rank][bank].rowBufferMissTimes;
+                        bankStates[rank][bank].lastOpenRow = poppedBusPacket->row;
+                    }
+
 				}
 
 				for (size_t i=0;i<cfg.NUM_RANKS;i++)
@@ -385,6 +396,17 @@ void MemoryController::update()
 					bankStates[rank][bank].nextPrecharge = max(currentClockCycle + cfg.WRITE_TO_PRE_DELAY,
 							bankStates[rank][bank].nextPrecharge);
 					bankStates[rank][bank].lastCommand = WRITE;
+
+                    ++bankStates[rank][bank].rowBufferAccessTimes;
+                    if (poppedBusPacket->row == bankStates[rank][bank].lastOpenRow)
+                    {
+                        ++bankStates[rank][bank].rowBufferHitTimes;
+                    }
+                    else
+                    {
+                        ++bankStates[rank][bank].rowBufferMissTimes;
+                        bankStates[rank][bank].lastOpenRow = poppedBusPacket->row;
+                    }
 				}
 
 
